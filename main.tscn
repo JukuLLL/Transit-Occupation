@@ -1,10 +1,14 @@
 [gd_scene format=3 uid="uid://dcdm1p1khuy4n"]
 
 [ext_resource type="PackedScene" uid="uid://c48vxj4kf855u" path="res://nodes/player.scn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://cphp41aouojx4" path="res://main.gd" id="1_kek77"]
 [ext_resource type="PackedScene" uid="uid://5dhb168nge3r" path="res://nodes/grapple_point.scn" id="2_0xm2m"]
 [ext_resource type="Material" uid="uid://wjo83fdww6cg" path="res://materials/tiles.tres" id="3_h2yge"]
 [ext_resource type="Material" uid="uid://bvb4qlj1p8qre" path="res://materials/wall.tres" id="4_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://d3qelrteo6tva" path="res://nodes/kill_area.scn" id="5_lquwl"]
+[ext_resource type="Environment" uid="uid://bf7twdntdmsn5" path="res://new_environment.tres" id="6_7mycd"]
+[ext_resource type="VoxelGIData" uid="uid://6i4p1ldxwufr" path="res://light/main.VoxelGI_data.res" id="7_272bh"]
+[ext_resource type="Script" uid="uid://ov0lyfm7lxy1" path="res://player_list.gd" id="8_5vw27"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_0xm2m"]
 height = 1.0
@@ -70,14 +74,15 @@ item/3/navigation_layers = 1
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_sb6jm"]
 
-[node name="Main" type="Node3D" unique_id=2043638737]
+[sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_71wnq"]
 
-[node name="Player" parent="." unique_id=1243320686 instance=ExtResource("1_ig7tw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4944496, 0)
-grapple_force = 0.6
+[node name="Main" type="Node3D" unique_id=2043638737]
+script = ExtResource("1_kek77")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=528985115]
 transform = Transform3D(-4.371139e-08, 1, 0, 0.62147814, 2.716567e-08, 0.7834316, 0.7834316, 3.424488e-08, -0.62147814, 0, 11, 0)
+light_color = Color(0.6542321, 0.6542321, 0.654232, 1)
+light_bake_mode = 1
 shadow_enabled = true
 
 [node name="GrapplePoint" parent="." unique_id=201643384 instance=ExtResource("2_0xm2m")]
@@ -132,3 +137,18 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="kill_area" unique_id=392935705]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -9, 36)
 shape = SubResource("WorldBoundaryShape3D_sb6jm")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=536050975]
+environment = ExtResource("6_7mycd")
+
+[node name="VoxelGI" type="VoxelGI" parent="." unique_id=39859742]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.875244, 13.334717, 13.813599)
+subdiv = 3
+size = Vector3(105.498535, 37.2417, 77.26294)
+camera_attributes = SubResource("CameraAttributesPhysical_71wnq")
+data = ExtResource("7_272bh")
+
+[node name="player_list" type="Node3D" parent="." unique_id=857503160]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4851713, 0)
+script = ExtResource("8_5vw27")
+base_player = ExtResource("1_ig7tw")

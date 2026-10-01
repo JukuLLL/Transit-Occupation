@@ -8,13 +8,23 @@
 
 config_version=5
 
+[GD-Sync]
+
+version="1.0.2"
+protectedMode=false
+
 [application]
 
 config/name="Transit Occupation"
-run/main_scene="uid://dcdm1p1khuy4n"
+run/main_scene="uid://cra81vsj0nib3"
 config/features=PackedStringArray("4.7", "Forward Plus")
 run/max_fps=60
 config/icon="res://icon.svg"
+
+[autoload]
+
+GDSync="*uid://cgo4kiocg4a4a"
+Network="*uid://bokr77itbsfk0"
 
 [display]
 
@@ -24,7 +34,7 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GodotTogether/plugin.cfg")
+enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg")
 
 [global_group]
 

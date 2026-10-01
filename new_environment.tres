@@ -1,6 +1,7 @@
 [gd_resource type="Environment" format=3 uid="uid://bf7twdntdmsn5"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yycb5"]
+sky_top_color = Color(0, 0, 0, 1)
 
 [sub_resource type="Sky" id="Sky_u7orw"]
 sky_material = SubResource("ProceduralSkyMaterial_yycb5")
@@ -8,6 +9,7 @@ sky_material = SubResource("ProceduralSkyMaterial_yycb5")
 [resource]
 background_mode = 2
 sky = SubResource("Sky_u7orw")
+ambient_light_sky_contribution = 0.32
 glow_enabled = true
 glow_normalized = true
 glow_bloom = 0.04

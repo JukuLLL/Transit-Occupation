@@ -38,20 +38,32 @@ var has_extra_momentum := false
 var cross_hair_regular_pos:Vector2
 var grapple_area:Rect2
 
+func owner_changed(id:int):
+	print("owner_changed")
+	var is_owner:bool=GDSync.is_gdsync_owner(self)
+	await get_tree().create_timer(2).timeout
+	if !is_owner:
+		$crosshair.visible = false
+		$Head.queue_free()
+	if is_owner:
+		$Head/FirstPersonCamera.make_current()
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		var screen:Rect2=get_viewport().get_visible_rect()
+		$crosshair.position = screen.size / 2
+		cross_hair_regular_pos = $crosshair.position
+		grapple_area = screen
+		grapple_area.position = grapple_area.end * 1.5
+		first_person_camera.current = true
+		third_person_camera.current = false
+		player_mesh.visible = false
+	pass
+
 func _ready():
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	var screen:Rect2=get_viewport().get_visible_rect()
-	$crosshair.position = screen.size / 2
-	cross_hair_regular_pos = $crosshair.position
-	grapple_area = screen
-	grapple_area.position = grapple_area.end * 1.5
-	first_person_camera.current = true
-	third_person_camera.current = false
-	
-	player_mesh.visible = false
+	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 
 
 func _unhandled_input(event):
+	if !GDSync.is_gdsync_owner(self): return
 	if event is InputEventMouseMotion:
 		# Turn the player left/right
 		rotate_y(-event.relative.x * mouse_sensitivity)
@@ -71,6 +83,7 @@ func _unhandled_input(event):
 
 
 func _physics_process(delta):
+	if !GDSync.is_gdsync_owner(self): return
 	$Label.text = str(velocity.length())
 	$Label2.text = str(grappling_target)
 	# DASH COOLDOWN
@@ -213,12 +226,14 @@ func is_in_range(pos:Vector2) -> bool:
 var grapple_positions = []
 	
 func set_grapple_target(pos:Vector3):
+	if !GDSync.is_gdsync_owner(self): return
 	grapple_pos = pos
 	if $Head/FirstPersonCamera.is_position_in_frustum(grapple_pos):
 		in_grapple = true
-	if grappling_target.is_in_group("grapple") and is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)):
-		$crosshair.position = $Head/FirstPersonCamera.unproject_position(grapple_pos)
-		$crosshair.play("interact")
+	if grappling_target != null:
+		if grappling_target.is_in_group("grapple") and is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)):
+			$crosshair.position = $Head/FirstPersonCamera.unproject_position(grapple_pos)
+			$crosshair.play("interact")
 		
 func grappling_hook(delta:float):
 	var mouse_side:float = Input.get_axis("left_click","right_click")
