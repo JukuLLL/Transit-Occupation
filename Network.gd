@@ -8,14 +8,7 @@ func _ready() -> void:
 	GDSync.lobby_created.connect(lobby_create)
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
-	GDSync.start_multiplayer()
-	await get_tree().create_timer(3).timeout
-	if Network.hosting:
-		print("host")
-		create_lobby()
-	else:
-		print("join")
-		join_lobby()
+	GDSync.start_local_multiplayer()
 	GDSync.get_public_lobbies()
 	pass # Replace with function body.
 	

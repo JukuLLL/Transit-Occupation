@@ -11,10 +11,10 @@ func connected():
 	print("connected")
 
 func _on_play_pressed() -> void:
-	Network.create_lobby()
+	Network.join_lobby()
 	pass # Replace with function body.
 
 
 func _on_create_pressed() -> void:
-	Network.join_lobby()
+	Network.create_lobby()
 	pass # Replace with function body.
