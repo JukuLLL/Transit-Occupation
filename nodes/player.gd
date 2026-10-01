@@ -19,7 +19,7 @@ var first_person := true
 # DASH
 var dash_cooldown := 2.0
 var dash_timer := 0.4
-var dash_speed := 7
+var dash_speed := 8
 var dash_duration := 0.7
 var dash_momentum_timer := 0.7
 
@@ -28,7 +28,7 @@ var jump_velocity := 7.0
 var gravity := 20.0
 
 # MOVEMENT
-var bunnyhop_acceleration := 0.1
+var bunnyhop_acceleration := 0.05
 var ground_acceleration := 20.0
 var ground_friction := 10000
 
@@ -41,7 +41,6 @@ var grapple_area:Rect2
 func owner_changed(id:int):
 	print("owner_changed")
 	var is_owner:bool=GDSync.is_gdsync_owner(self)
-	await get_tree().create_timer(2).timeout
 	if !is_owner:
 		$crosshair.visible = false
 		$Head.queue_free()
@@ -212,7 +211,7 @@ func _physics_process(delta):
 	
 	move_and_slide()
 	
-var grappling_target:Node3D
+var grappling_target:Node3D=self
 
 var grapple_pos:Vector3=Vector3.ZERO
 
@@ -226,7 +225,6 @@ func is_in_range(pos:Vector2) -> bool:
 var grapple_positions = []
 	
 func set_grapple_target(pos:Vector3):
-	if !GDSync.is_gdsync_owner(self): return
 	grapple_pos = pos
 	if $Head/FirstPersonCamera.is_position_in_frustum(grapple_pos):
 		in_grapple = true
@@ -237,16 +235,16 @@ func set_grapple_target(pos:Vector3):
 		
 func grappling_hook(delta:float):
 	var mouse_side:float = Input.get_axis("left_click","right_click")
-	if mouse_side:
-		if grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)):
-			var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
-			velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
-	elif !mouse_side or !grappling_target.is_in_group("grapple"):
+	if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)) and $Head/FirstPersonCamera.is_position_in_frustum(grapple_pos):
+		var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
+		velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
+	elif !grappling_target.is_in_group("grapple") or !is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)):
 		#grapple_ray.rotation = Vector3.ZERO
 		in_grapple = false
 		$crosshair.position = cross_hair_regular_pos
 		$crosshair.play("default")
 		pass
+		
 
 
 func do_dash(direction: Vector3):
