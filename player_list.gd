@@ -6,21 +6,21 @@ var started = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	GDSync.client_left.connect(leave)
-	GDSync.expose_func(_start_game)
+	
 	#GDSync.client_joined.connect(join)
 	pass # Replace with function body.
 	
 
 func _input(event: InputEvent) -> void:
-	if GDSync.is_host() and !started:
+	if multiplayer.is_server() and !started:
 		if Input.is_action_just_pressed("ui_accept"):
 			started = true
-			GDSync.call_func_all(_start_game)
+			_start_game.rpc()
 				
+@rpc("any_peer","call_local","reliable")
 func _start_game():
 	Network.game_started = true
-	for client_id:int in GDSync.lobby_get_all_clients():
+	for client_id:int in multiplayer.get_peers():
 		join(client_id)
 
 
@@ -31,13 +31,14 @@ func leave(client_id:int):
 	pass
 
 func join(client_id:int) -> void:
-	if GDSync.player_get_data(client_id,"TEAM") == "MONSTER":
+	NetworkUtils._get_from_player_data(client_id)
+	if NetworkUtils.info == "MONSTER":
 		var plr:player=base_monster.instantiate()
 		print("create_plr " + str(client_id))
 		add_child(plr)
 		plr.name = str(client_id)
 		plr.monster = true
-		GDSync.set_gdsync_owner(plr,client_id)
+		plr.set_multiplayer_authority(client_id)
 		pass
 	else:
 		var plr:player=base_player.instantiate()
@@ -45,5 +46,5 @@ func join(client_id:int) -> void:
 		add_child(plr)
 		plr.name = str(client_id)
 		plr.monster = false
-		GDSync.set_gdsync_owner(plr,client_id)
+		plr.set_multiplayer_authority(client_id)
 		pass

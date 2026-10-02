@@ -47,7 +47,7 @@ var grapple_area:Rect2
 
 func owner_changed(id:int):
 	print("owner_changed")
-	var is_owner:bool=GDSync.is_gdsync_owner(self)
+	var is_owner:bool=is_multiplayer_authority()
 	if !is_owner:
 		head.queue_free()
 	if is_owner:
@@ -63,12 +63,11 @@ func owner_changed(id:int):
 		player_mesh.visible = false
 		first_person_camera.make_current()
 		await get_tree().physics_frame
-		if GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM") == "MONSTER":
+		if monster:
 			monster = true
 			add_child(filter.instantiate())
 		else:
 			monster = false
-		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 		grapple_line = head.grapplle_line
 		if grapple_line and monster:
 			grapple_line.add_point(Vector2(1920 / 2,1080))
@@ -76,13 +75,13 @@ func owner_changed(id:int):
 
 func _ready():
 	grapple_ray = head.grapple_ray
-	GDSync.connect_gdsync_owner_changed(self,owner_changed)
+	owner_changed(get_multiplayer_authority())
 	if monster:
 		grapple_ray.target_position.z = (25 * grapple_distance) * -1
 
 
 func _unhandled_input(event):
-	if !GDSync.is_gdsync_owner(self): return
+	if !is_multiplayer_authority(): return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Turn the player left/right
 		rotate_y(-event.relative.x * mouse_sensitivity)
@@ -108,7 +107,7 @@ func _unhandled_input(event):
 
 
 func _physics_process(delta):
-	if !GDSync.is_gdsync_owner(self): return
+	if !is_multiplayer_authority(): return
 	$Label.text = str(velocity.length())
 	$Label2.text = str(grappling_target)
 	# DASH COOLDOWN

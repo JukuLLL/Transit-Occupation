@@ -3,17 +3,8 @@ extends Control
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	#for child:Node in get_children():
-		#if child.get("disabled") != null:
-			#child.disabled = true
-	GDSync.connected.connect(connected)
 	pass # Replace with function body.
 
-func connected():
-	print("connected")
-	#for child:Node in get_children():
-		#if child.get("disabled") != null:
-			#child.disabled = false
 
 func _on_play_pressed() -> void:
 	Network.join_lobby()

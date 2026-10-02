@@ -23,8 +23,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GDSync="*uid://cgo4kiocg4a4a"
 Network="*uid://bokr77itbsfk0"
+NetworkUtils="*uid://di73sxklho7ff"
 
 [display]
 
@@ -35,7 +35,7 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GodotTogether/plugin.cfg")
+enabled=PackedStringArray("res://addons/GodotTogether/plugin.cfg")
 
 [global_group]
 
