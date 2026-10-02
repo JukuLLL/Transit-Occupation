@@ -8,7 +8,7 @@ func _ready() -> void:
 	GDSync.lobby_created.connect(lobby_create)
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
-	GDSync.start_local_multiplayer()
+	GDSync.start_multiplayer()
 	pass # Replace with function body.
 	
 func lobby_recived(lobbies:Dictionary):
