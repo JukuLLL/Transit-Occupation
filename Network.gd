@@ -2,13 +2,14 @@ extends Node
 
 var hosting = false
 
+var side = "PLAYER"
+
 func _ready() -> void:
 	GDSync.lobby_joined.connect(joined)
 	GDSync.lobby_received.connect(lobby_recived)
 	GDSync.lobby_created.connect(lobby_create)
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
-	GDSync.start_multiplayer()
 	pass # Replace with function body.
 	
 func lobby_recived(lobbies:Dictionary):
@@ -21,18 +22,30 @@ func connected():
 func joined(lobby_name:String):
 	print("joined "+lobby_name)
 	
+func multiplayer_start(local:bool=false) -> bool:
+	if local:
+		GDSync.start_local_multiplayer()
+	else:
+		GDSync.start_multiplayer()
+	await GDSync.connected
+	return true
+	
 
-func join_lobby():
-	GDSync.get_public_lobbies()
-	get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
-	Network.hosting = true
-	GDSync.lobby_join("ABCD")
+func join_lobby(local:bool=false):
+	if await multiplayer_start(local):
+		GDSync.player_set_data("TEAM",side)
+		GDSync.get_public_lobbies()
+		get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
+		Network.hosting = true
+		GDSync.lobby_join("ABCD")
 
-func create_lobby():
-	get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
-	Network.hosting = false
-	GDSync.lobby_create("ABCD")
-	GDSync.lobby_join("ABCD")
+func create_lobby(local:bool=false):
+	if await multiplayer_start(local):
+		GDSync.player_set_data("TEAM",side)
+		get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
+		Network.hosting = false
+		GDSync.lobby_create("ABCD")
+		GDSync.lobby_join("ABCD")
 
 func lobby_create(lobby_name:String):
 	print(lobby_name)

@@ -9,6 +9,7 @@
 [ext_resource type="Environment" uid="uid://bf7twdntdmsn5" path="res://new_environment.tres" id="6_7mycd"]
 [ext_resource type="VoxelGIData" uid="uid://6i4p1ldxwufr" path="res://light/main.VoxelGI_data.res" id="7_272bh"]
 [ext_resource type="Script" uid="uid://ov0lyfm7lxy1" path="res://player_list.gd" id="8_5vw27"]
+[ext_resource type="PackedScene" uid="uid://d2ni8vy6djytp" path="res://nodes/monster.scn" id="10_4c57u"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_0xm2m"]
 height = 1.0
@@ -153,3 +154,4 @@ data = ExtResource("7_272bh")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4851713, 0)
 script = ExtResource("8_5vw27")
 base_player = ExtResource("1_ig7tw")
+base_monster = ExtResource("10_4c57u")
