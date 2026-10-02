@@ -8,9 +8,12 @@ class_name player extends CharacterBody3D
 @export var in_grapple = false
 @export var grapple_sensitivity := 300
 
+@export var monster:bool=false
+
 @onready var head = $Head
-@onready var first_person_camera = $Head/FirstPersonCamera
-@onready var third_person_camera = $Head/ThirdPersonArm/ThirdPersonCamera
+@onready var crosshair = $Head.crosshair
+@onready var first_person_camera = $Head.first_person_camera
+@onready var third_person_camera = $Head.third_person_camera
 @onready var player_mesh = $MeshInstance3D
 
 
@@ -37,27 +40,36 @@ var ground_friction := 10000
 var has_extra_momentum := false
 var cross_hair_regular_pos:Vector2
 var grapple_area:Rect2
+@export var filter:PackedScene
 
 func owner_changed(id:int):
 	print("owner_changed")
 	var is_owner:bool=GDSync.is_gdsync_owner(self)
 	if !is_owner:
-		$crosshair.visible = false
-		$Head.queue_free()
+		head.queue_free()
 	if is_owner:
-		$Head/FirstPersonCamera.make_current()
+		first_person_camera.make_current()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		var screen:Rect2=get_viewport().get_visible_rect()
-		$crosshair.position = screen.size / 2
-		cross_hair_regular_pos = $crosshair.position
+		crosshair.position = screen.size / 2
+		cross_hair_regular_pos = crosshair.position
 		grapple_area = screen
 		grapple_area.position = grapple_area.end * 1.5
 		first_person_camera.current = true
 		third_person_camera.current = false
 		player_mesh.visible = false
+		first_person_camera.make_current()
+		await get_tree().physics_frame
+		if GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM") == "MONSTER":
+			monster = true
+			add_child(filter.instantiate())
+		else:
+			monster = false
+		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
 
 func _ready():
+	grapple_ray = head.grapple_ray
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 
 
@@ -209,7 +221,8 @@ func _physics_process(delta):
 	# DASH
 	if Input.is_action_just_pressed("dash") and dash_timer <= 0:
 		do_dash(direction)
-	grapple_ray.look_at(grapple_pos)
+	if grapple_pos != null:
+		grapple_ray.look_at(grapple_pos)
 	if grapple_ray.is_colliding():
 		grappling_target = grapple_ray.get_collider()
 	
@@ -232,23 +245,23 @@ var grapple_positions = []
 	
 func set_grapple_target(pos:Vector3):
 	grapple_pos = pos
-	if $Head/FirstPersonCamera.is_position_in_frustum(grapple_pos):
+	if first_person_camera.is_position_in_frustum(grapple_pos):
 		in_grapple = true
 	if grappling_target != null:
-		if grappling_target.is_in_group("grapple") and is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)):
-			$crosshair.position = $Head/FirstPersonCamera.unproject_position(grapple_pos)
-			$crosshair.play("interact")
+		if grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)):
+			crosshair.position = first_person_camera.unproject_position(grapple_pos)
+			crosshair.play("interact")
 		
 func grappling_hook(delta:float):
 	var mouse_side:float = Input.get_axis("left_click","right_click")
-	if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)) and $Head/FirstPersonCamera.is_position_in_frustum(grapple_pos):
+	if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 		var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
 		velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
-	elif !grappling_target.is_in_group("grapple") or !is_in_range($Head/FirstPersonCamera.unproject_position(grapple_pos)):
+	elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
 		#grapple_ray.rotation = Vector3.ZERO
 		in_grapple = false
-		$crosshair.position = cross_hair_regular_pos
-		$crosshair.play("default")
+		crosshair.position = cross_hair_regular_pos
+		crosshair.play("default")
 		pass
 		
 

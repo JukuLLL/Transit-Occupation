@@ -19,13 +19,15 @@ func _input(event: InputEvent) -> void:
 			GDSync.call_func_all(_start_game)
 				
 func _start_game():
+	Network.game_started = true
 	for client_id:int in GDSync.lobby_get_all_clients():
 		join(client_id)
 
 
 func leave(client_id:int):
 	var plr:player=find_child(str(client_id))
-	plr.queue_free()
+	if plr != null:
+		plr.queue_free()
 	pass
 
 func join(client_id:int) -> void:
@@ -34,6 +36,7 @@ func join(client_id:int) -> void:
 		print("create_plr " + str(client_id))
 		add_child(plr)
 		plr.name = str(client_id)
+		plr.monster = true
 		GDSync.set_gdsync_owner(plr,client_id)
 		pass
 	else:
@@ -41,5 +44,6 @@ func join(client_id:int) -> void:
 		print("create_plr " + str(client_id))
 		add_child(plr)
 		plr.name = str(client_id)
+		plr.monster = false
 		GDSync.set_gdsync_owner(plr,client_id)
 		pass

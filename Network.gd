@@ -4,6 +4,8 @@ var hosting = false
 
 var side = "PLAYER"
 
+var game_started = false
+
 func _ready() -> void:
 	GDSync.lobby_joined.connect(joined)
 	GDSync.lobby_received.connect(lobby_recived)
@@ -33,19 +35,19 @@ func multiplayer_start(local:bool=false) -> bool:
 
 func join_lobby(local:bool=false):
 	if await multiplayer_start(local):
-		GDSync.player_set_data("TEAM",side)
 		GDSync.get_public_lobbies()
 		get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
 		Network.hosting = true
 		GDSync.lobby_join("ABCD")
+		GDSync.player_set_data("TEAM",side)
 
 func create_lobby(local:bool=false):
 	if await multiplayer_start(local):
-		GDSync.player_set_data("TEAM",side)
 		get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
 		Network.hosting = false
 		GDSync.lobby_create("ABCD")
 		GDSync.lobby_join("ABCD")
+		GDSync.player_set_data("TEAM",side)
 
 func lobby_create(lobby_name:String):
 	print(lobby_name)

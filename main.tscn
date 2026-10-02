@@ -10,6 +10,7 @@
 [ext_resource type="VoxelGIData" uid="uid://6i4p1ldxwufr" path="res://light/main.VoxelGI_data.res" id="7_272bh"]
 [ext_resource type="Script" uid="uid://ov0lyfm7lxy1" path="res://player_list.gd" id="8_5vw27"]
 [ext_resource type="PackedScene" uid="uid://d2ni8vy6djytp" path="res://nodes/monster.scn" id="10_4c57u"]
+[ext_resource type="PackedScene" uid="uid://dqwy0hmbguhpf" path="res://nodes/map_viewer.scn" id="11_efxa6"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_0xm2m"]
 height = 1.0
@@ -155,3 +156,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4851713, 0)
 script = ExtResource("8_5vw27")
 base_player = ExtResource("1_ig7tw")
 base_monster = ExtResource("10_4c57u")
+
+[node name="map_viewer" parent="." unique_id=573647168 node_paths=PackedStringArray("camera") instance=ExtResource("11_efxa6")]
+camera = NodePath("Camera3D")
+
+[node name="Camera3D" type="Camera3D" parent="map_viewer" unique_id=1196149569]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 38.085472, 54.926193)
+environment = ExtResource("6_7mycd")
