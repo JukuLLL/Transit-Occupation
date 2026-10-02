@@ -14,6 +14,6 @@ func _physics_process(delta: float) -> void:
 			return
 		if camera.owner.owner.is_class("CharacterBody3D"):
 			var plr:player=camera.owner.owner
-			if camera.is_position_in_frustum(global_position) and global_position.distance_to(plr.global_position) < distance:
+			if camera.is_position_in_frustum(global_position) and global_position.distance_to(plr.global_position) < distance * plr.grapple_distance:
 				plr.set_grapple_target(global_position)
 			pass

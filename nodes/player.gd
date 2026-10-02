@@ -2,11 +2,14 @@ class_name player extends CharacterBody3D
 
 @export var speed := 5.0
 @export var sprint_speed := 10.0
+@export var jump_multiplier:float=1
 @export var mouse_sensitivity := 0.002
 @export var grapple_ray:RayCast3D
+@export var grapple_line:Line2D
 @export var grapple_force:float=1
 @export var in_grapple = false
 @export var grapple_sensitivity := 300
+@export var grapple_distance:float=1.0
 
 @export var monster:bool=false
 
@@ -66,11 +69,16 @@ func owner_changed(id:int):
 		else:
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
+		grapple_line = head.grapplle_line
+		if grapple_line and monster:
+			grapple_line.add_point(Vector2(1920 / 2,1080))
 	pass
 
 func _ready():
 	grapple_ray = head.grapple_ray
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
+	if monster:
+		grapple_ray.target_position.z = (25 * grapple_distance) * -1
 
 
 func _unhandled_input(event):
@@ -131,7 +139,7 @@ func _physics_process(delta):
 		
 		# Jump
 		if Input.is_action_just_pressed("jump"):
-			velocity.y = jump_velocity
+			velocity.y = jump_velocity * jump_multiplier
 			
 			# Preserve existing momentum.
 			# This is what allows bunnyhopping.
@@ -257,14 +265,26 @@ func grappling_hook(delta:float):
 	if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 		var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
 		velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
+		if grapple_line and monster:
+			if grapple_line.get_point_count() <= 1:
+				grapple_line.add_point(first_person_camera.unproject_position(grapple_pos))
+			grapple_line.set_point_position(1,first_person_camera.unproject_position(grapple_pos))
 	elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
 		#grapple_ray.rotation = Vector3.ZERO
 		in_grapple = false
 		crosshair.position = cross_hair_regular_pos
 		crosshair.play("default")
+		remove_line()
 		pass
 		
+	if !mouse_side:
+		remove_line()
+		
 
+func remove_line():
+	if grapple_line and monster:
+			if grapple_line.get_point_count() >= 2:
+				grapple_line.remove_point(1)
 
 func do_dash(direction: Vector3):
 	if direction == Vector3.ZERO:

@@ -4,6 +4,7 @@ extends Node3D
 @export var third_person_camera:Camera3D
 @export var plr:player
 @export var grapple_ray:RayCast3D
+@export var grapplle_line:Line2D
 
 @export var crosshair:AnimatedSprite2D
 
