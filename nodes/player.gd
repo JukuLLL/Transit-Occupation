@@ -63,7 +63,7 @@ func _ready():
 
 func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self): return
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Turn the player left/right
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		
@@ -79,6 +79,12 @@ func _unhandled_input(event):
 	
 	if event.is_action_pressed("toggle_camera"):
 		toggle_camera()
+	if Input.is_action_just_pressed("ui_cancel"):
+		await get_tree().process_frame
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _physics_process(delta):

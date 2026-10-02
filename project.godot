@@ -101,3 +101,5 @@ right_click={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

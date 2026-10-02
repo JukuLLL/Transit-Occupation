@@ -9,7 +9,6 @@ func _ready() -> void:
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
 	GDSync.start_local_multiplayer()
-	GDSync.get_public_lobbies()
 	pass # Replace with function body.
 	
 func lobby_recived(lobbies:Dictionary):
@@ -24,6 +23,7 @@ func joined(lobby_name:String):
 	
 
 func join_lobby():
+	GDSync.get_public_lobbies()
 	get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
 	Network.hosting = true
 	GDSync.lobby_join("ABCD")
