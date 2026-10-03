@@ -51,6 +51,7 @@ func owner_changed(id:int):
 	if !is_owner:
 		head.queue_free()
 	if is_owner:
+		$OmniLight3D.visible = true
 		first_person_camera.make_current()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		var screen:Rect2=get_viewport().get_visible_rect()
@@ -66,6 +67,7 @@ func owner_changed(id:int):
 		if GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM") == "MONSTER":
 			monster = true
 			add_child(filter.instantiate())
+			grapple_ray.set_collision_mask_value(32,false)
 		else:
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))

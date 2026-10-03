@@ -95,6 +95,10 @@ right_click={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_32="grapple_block"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

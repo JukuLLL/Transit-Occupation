@@ -1,8 +1,9 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://wjo83fdww6cg"]
 
-[ext_resource type="Texture2D" uid="uid://dxonoi01t3d14" path="res://128x128/Tile/Tile_16-128x128.png" id="1_5oqcc"]
+[ext_resource type="Texture2D" uid="uid://10ays7xfxrdk" path="res://128x128/concrete/CNAQ1_3.png" id="1_5oqcc"]
 
 [resource]
 albedo_texture = ExtResource("1_5oqcc")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
 uv1_triplanar = true
 uv1_world_triplanar = true
