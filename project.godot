@@ -18,7 +18,6 @@ protectedMode=false
 config/name="Transit Occupation"
 run/main_scene="uid://cra81vsj0nib3"
 config/features=PackedStringArray("4.7", "Forward Plus")
-run/max_fps=60
 config/icon="res://icon.svg"
 
 [autoload]
@@ -108,3 +107,4 @@ right_click={
 rendering_device/driver.windows="d3d12"
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
+occlusion_culling/use_occlusion_culling=true
