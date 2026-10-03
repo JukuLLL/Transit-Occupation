@@ -239,6 +239,11 @@ edge_fade = 0.91895664
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_sb6jm"]
 
+[sub_resource type="FogMaterial" id="FogMaterial_hwo44"]
+density = 0.8864
+albedo = Color(0, 0, 0, 1)
+height_falloff = 0.7023928
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_atkw5"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hwo44"]
@@ -286,6 +291,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -17.541851, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="kill_area" unique_id=392935705]
 shape = SubResource("WorldBoundaryShape3D_sb6jm")
+
+[node name="FogVolume" type="FogVolume" parent="kill_area" unique_id=167664848]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.790227, 1.1936626, -11.285478)
+size = Vector3(19.12622, 5.0234985, 8.724823)
+material = SubResource("FogMaterial_hwo44")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=536050975]
 environment = ExtResource("6_7mycd")
