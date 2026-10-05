@@ -6,6 +6,7 @@ func _ready() -> void:
 	GDSync.expose_func(change_level)
 	GDSync.expose_func(set_side_data)
 	GDSync.expose_func(set_side)
+	GDSync.expose_func(set_monster_id)
 	GDSync.client_joined.connect(_join)
 	GDSync.client_left.connect(_leave)
 	await get_tree().create_timer(1).timeout
@@ -14,6 +15,9 @@ func _ready() -> void:
 
 var list = []
 var plr_list = []
+
+func _process(delta: float) -> void:
+	$time.text = str(roundi($Timer.time_left))
 
 
 func _join(client_id:int):
@@ -37,10 +41,12 @@ func _on_timer_timeout() -> void:
 	
 var started = false
 
+var monster_id:int=0
+
 func set_side():
 	if GDSync.is_host():
-		var monster_id:int
-		monster_id = GDSync.lobby_get_all_clients().pick_random()
+		if monster_id != 0:
+			monster_id = GDSync.lobby_get_all_clients().pick_random()
 		for client:int in GDSync.lobby_get_all_clients():
 			print(client)
 			if client == monster_id:
@@ -52,8 +58,13 @@ func set_side_data(monster:bool):
 	print("is_monster")
 	if monster:
 		GDSync.player_set_data("TEAM","MONSTER")
+		GDSync.call_func_all(set_monster_id,GDSync.get_client_id())
 	else:
 		GDSync.player_set_data("TEAM","PLAYER")
+		
+func set_monster_id(client:int):
+	Network.monster_id = client
+		
 func change_level():
 	if started: return
 	set_side()
@@ -66,4 +77,10 @@ func change_level():
 func _on_start_pressed() -> void:
 	if GDSync.is_host():
 		GDSync.call_func_all(change_level)
+	pass # Replace with function body.
+
+
+func _on_item_list_item_selected(index: int) -> void:
+	if GDSync.is_host():
+		monster_id = plr_list.get(index)
 	pass # Replace with function body.

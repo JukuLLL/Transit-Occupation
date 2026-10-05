@@ -10,5 +10,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	rotation_degrees.y += 0.1
 	if Network.game_started:
-		queue_free()
+		$Camera3D/Label.visible = false
+		$Camera3D.current = false
+		$Camera3D.set_process(false)
 		

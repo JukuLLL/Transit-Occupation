@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://dqwy0hmbguhpf" path="res://nodes/map_viewer.scn" id="11_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bjibxv2w41dcn" path="res://nodes/grapple_blocker.scn" id="17_yaehf"]
 [ext_resource type="ArrayOccluder3D" uid="uid://8165bj6nljcj" path="res://main.occ" id="18_074og"]
+[ext_resource type="PackedScene" uid="uid://dyiql7epvicx8" path="res://nodes/grappable_object.scn" id="20_82xsv"]
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_sb6jm"]
 
@@ -455,6 +456,7 @@ wait_time = 10.0
 one_shot = true
 
 [node name="Label" type="Label" parent="map_viewer/Camera3D" unique_id=947469213]
+visible = false
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -539,5 +541,11 @@ shadow_enabled = true
 shadow_caster_mask = 4294967293
 area_range = 25.405
 area_size = Vector2(6.4183235, 12.891261)
+
+[node name="Grappable_object_barrel" parent="." unique_id=809677213 instance=ExtResource("20_82xsv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5990646, -12.995262)
+
+[node name="Grappable_object_barrel2" parent="." unique_id=1453316741 instance=ExtResource("20_82xsv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5990646, -8.106957)
 
 [connection signal="timeout" from="map_viewer/Camera3D/Timer" to="player_list" method="_on_timer_timeout"]

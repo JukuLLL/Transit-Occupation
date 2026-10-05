@@ -21,6 +21,7 @@ func _physics_process(delta: float) -> void:
 					$"../map_viewer/Camera3D/Timer".start()
 				$"../map_viewer/Camera3D/Label".text = str(roundi($"../map_viewer/Camera3D/Timer".time_left))
 				
+
 func _start_game():
 	Network.game_started = true
 	for client_id:int in GDSync.lobby_get_all_clients():
