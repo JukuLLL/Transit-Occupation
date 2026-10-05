@@ -8,15 +8,18 @@ var started = false
 func _ready() -> void:
 	GDSync.client_left.connect(leave)
 	GDSync.expose_func(_start_game)
+	await get_tree().physics_frame
 	#GDSync.client_joined.connect(join)
 	pass # Replace with function body.
 	
 
-func _input(event: InputEvent) -> void:
-	if GDSync.is_host() and !started:
-		if Input.is_action_just_pressed("ui_accept"):
-			started = true
-			GDSync.call_func_all(_start_game)
+func _physics_process(delta: float) -> void:
+	if GDSync.is_host():
+		if is_instance_valid($"../map_viewer/Camera3D/Timer"):
+			if $"../map_viewer/Camera3D/Timer":
+				if $"../map_viewer/Camera3D/Timer".is_stopped() and !started:
+					$"../map_viewer/Camera3D/Timer".start()
+				$"../map_viewer/Camera3D/Label".text = str(roundi($"../map_viewer/Camera3D/Timer".time_left))
 				
 func _start_game():
 	Network.game_started = true
@@ -47,3 +50,10 @@ func join(client_id:int) -> void:
 		plr.monster = false
 		GDSync.set_gdsync_owner(plr,client_id)
 		pass
+
+
+func _on_timer_timeout() -> void:
+	if GDSync.is_host() and !started:
+		started = true
+		GDSync.call_func_all(_start_game)
+	pass # Replace with function body.

@@ -10,6 +10,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_instance_valid(get_viewport().get_camera_3d()):
 		var camera:Camera3D=get_viewport().get_camera_3d()
+		if  camera.owner == null:
+			return
 		if  camera.owner.owner == null:
 			return
 		if camera.owner.owner.is_class("CharacterBody3D"):

@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://tkwqkuvll44v" path="res://128x128/concrete/CNWN3_1.png" id="7_w48qg"]
 [ext_resource type="Script" uid="uid://ov0lyfm7lxy1" path="res://player_list.gd" id="8_5vw27"]
 [ext_resource type="Texture2D" uid="uid://c45jkam8lmlln" path="res://128x128/concrete/CNPN2_6.png" id="8_vivmo"]
+[ext_resource type="Script" uid="uid://fcoih1ax5dcs" path="res://addons/GD-Sync/Scripts/Types/PropertySynchronizer.gd" id="9_cegan"]
 [ext_resource type="PackedScene" uid="uid://d2ni8vy6djytp" path="res://nodes/monster.scn" id="10_4c57u"]
 [ext_resource type="PackedScene" uid="uid://dqwy0hmbguhpf" path="res://nodes/map_viewer.scn" id="11_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bjibxv2w41dcn" path="res://nodes/grapple_blocker.scn" id="17_yaehf"]
@@ -28,6 +29,41 @@ height_falloff = 0.7023928
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_yaehf"]
 dof_blur_far_enabled = true
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_2cqfq"]
+sky_top_color = Color(0.5065723, 0.58014435, 0.6783663, 1)
+sky_horizon_color = Color(0, 0, 0, 1)
+sky_cover_modulate = Color(0, 0, 0, 1)
+ground_bottom_color = Color(0, 0, 0, 1)
+ground_horizon_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Sky" id="Sky_u7orw"]
+sky_material = SubResource("ProceduralSkyMaterial_2cqfq")
+
+[sub_resource type="Environment" id="Environment_074og"]
+background_mode = 2
+background_energy_multiplier = 0.76
+sky = SubResource("Sky_u7orw")
+ambient_light_sky_contribution = 0.47
+ssr_enabled = true
+ssao_enabled = true
+ssao_horizon = 0.0
+ssao_light_affect = 0.1
+sdfgi_use_occlusion = true
+sdfgi_cascades = 8
+sdfgi_min_cell_size = 0.030517578
+sdfgi_y_scale = 0
+glow_enabled = true
+glow_normalized = true
+glow_bloom = 0.04
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.01
+volumetric_fog_albedo = Color(0.5449743, 0.54497427, 0.54497427, 1)
+volumetric_fog_emission_energy = 0.0
+adjustment_enabled = true
+
+[sub_resource type="LabelSettings" id="LabelSettings_074og"]
+font_size = 64
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_atkw5"]
 
@@ -158,7 +194,7 @@ shader_parameter/oilyness = 0.0
 shader_parameter/rim_amount = 0.0
 shader_parameter/rim_shape = 4.0
 shader_parameter/rim_color = Color(1, 1, 1, 1)
-shader_parameter/refraction_strength = 0.009999977424480111
+shader_parameter/refraction_strength = 0.00999997742448011
 shader_parameter/blur_amount = 1.47500006680262
 shader_parameter/roughness_affect = 0.0
 shader_parameter/roughness = 0.0
@@ -209,7 +245,7 @@ shader_parameter/oilyness = 0.0
 shader_parameter/rim_amount = 0.0
 shader_parameter/rim_shape = 4.0
 shader_parameter/rim_color = Color(1, 1, 1, 1)
-shader_parameter/refraction_strength = 0.009999977424480111
+shader_parameter/refraction_strength = 0.00999997742448011
 shader_parameter/blur_amount = 1.6000000727401202
 shader_parameter/roughness_affect = 0.499999988824
 shader_parameter/roughness = 0.07999999821184
@@ -249,7 +285,7 @@ uv1_world_triplanar = true
 lightmap_size_hint = Vector2i(64, 64)
 material = SubResource("StandardMaterial3D_yaehf")
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_cegan"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_getpj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_getpj"]
 albedo_texture = ExtResource("8_vivmo")
@@ -322,7 +358,7 @@ item/8/name = ""
 item/8/mesh = SubResource("BoxMesh_074og")
 item/8/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/8/mesh_cast_shadow = 1
-item/8/shapes = [SubResource("BoxShape3D_cegan"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
+item/8/shapes = [SubResource("BoxShape3D_getpj"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)]
 item/8/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/8/navigation_layers = 1
 item/9/name = ""
@@ -411,7 +447,37 @@ camera = NodePath("Camera3D")
 
 [node name="Camera3D" type="Camera3D" parent="map_viewer" unique_id=1196149569]
 transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 38.085472, 54.926193)
-environment = ExtResource("6_7mycd")
+environment = SubResource("Environment_074og")
+
+[node name="Timer" type="Timer" parent="map_viewer/Camera3D" unique_id=1409673838]
+process_callback = 0
+wait_time = 10.0
+one_shot = true
+
+[node name="Label" type="Label" parent="map_viewer/Camera3D" unique_id=947469213]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -36.5
+offset_top = -202.0
+offset_right = 36.5
+offset_bottom = -114.0
+grow_horizontal = 2
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_074og")
+
+[node name="PropertySynchronizer" type="Node" parent="map_viewer/Camera3D/Label" unique_id=1138204226]
+script = ExtResource("9_cegan")
+node_path = NodePath("..")
+properties = PackedStringArray("text")
+interpolated = false
+interpolation_speed = 1.0
+extrapolation = null
+extrapolated = false
+max_extrapolation_time = 0.2
+metadata/_custom_type_script = "uid://fcoih1ax5dcs"
 
 [node name="point" parent="." unique_id=201643384 instance=ExtResource("2_0xm2m")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.044851, 4.0151863, 6.664205)
@@ -473,3 +539,5 @@ shadow_enabled = true
 shadow_caster_mask = 4294967293
 area_range = 25.405
 area_size = Vector2(6.4183235, 12.891261)
+
+[connection signal="timeout" from="map_viewer/Camera3D/Timer" to="player_list" method="_on_timer_timeout"]

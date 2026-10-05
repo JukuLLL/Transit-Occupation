@@ -38,3 +38,8 @@ func _on_create_testing_pressed() -> void:
 func _on_join_testing_pressed() -> void:
 	Network.join_lobby(true)
 	pass # Replace with function body.
+
+
+func _on_namer_text_changed(new_text: String) -> void:
+	Network.plr_name = new_text
+	pass # Replace with function body.

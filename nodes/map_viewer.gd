@@ -8,6 +8,7 @@ func _ready() -> void:
 	pass # Replace with function body.
 
 func _physics_process(delta: float) -> void:
-	rotation_degrees.y += 0.5
+	rotation_degrees.y += 0.1
 	if Network.game_started:
 		queue_free()
+		
