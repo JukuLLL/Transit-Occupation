@@ -21,14 +21,13 @@ func _ready() -> void:
 	pull_kill_timer = timer
 	pull_kill_timer.timeout.connect(kill)
 	timer=Timer.new()
-	timer.wait_time = 5
+	timer.wait_time = 3
 	add_child(timer)
 	freeze_timer = timer
 	freeze_timer.timeout.connect(freeze_check)
+	freeze_timer.start()
 	await get_tree().create_timer(0.5).timeout
 	GDSync.set_gdsync_owner(self,Network.monster_id)
-	await get_tree().create_timer(3).timeout
-	freeze = true
 	pass # Replace with function body.
 
 var cooldown = false
@@ -36,8 +35,16 @@ var cooldown = false
 var aimbotting = false
 
 func freeze_check():
-	if is_zero_approx(linear_velocity.length() + angular_velocity.length()):
+	print("freeze")
+	var is_colliding_with_physics=false
+	for node:Node3D in get_colliding_bodies():
+		if node.is_class("RigidBody3D"):
+			is_colliding_with_physics = true
+	if is_zero_approx(linear_velocity.length() + angular_velocity.length()) and get_contact_count() != 0 and is_colliding_with_physics == false:
 		freeze = true
+		print("frozen")
+	elif freeze == false:
+		freeze = false
 
 func kill():
 	being_pulled = false
@@ -61,7 +68,7 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 	being_pulled = true
 	var pulling = true
 	if sound_physics:
-		sound_physics.sound_cooldown = 50
+		sound_physics.sound_cooldown = 0
 	while pulling:
 		apply_impulse(global_position.direction_to(from) * force,Vector3.UP)
 		await get_tree().physics_frame
@@ -74,7 +81,7 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	if sound_physics:
-		sound_physics.sound_cooldown = 2
+		sound_physics.sound_cooldown = 0
 	apply_central_impulse(global_position.direction_to(to) * (force * 4))
 	cooldown = true
 	

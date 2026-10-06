@@ -50,7 +50,7 @@ func set_side():
 			monster_id = GDSync.lobby_get_all_clients().pick_random()
 		for client:int in GDSync.lobby_get_all_clients():
 			print(client)
-			if client == monster_id:
+			if client == monster_id and Network.plr_name != "plr":
 				GDSync.call_func_on(client,set_side_data,true)
 			else:
 				GDSync.call_func_on(client,set_side_data,false)
