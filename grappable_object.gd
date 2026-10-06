@@ -10,6 +10,8 @@ var being_pulled = false
 
 var pull_kill_timer:Timer
 
+var freeze_timer:Timer
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	GDSync.expose_node(self)
@@ -18,13 +20,23 @@ func _ready() -> void:
 	add_child(timer)
 	pull_kill_timer = timer
 	pull_kill_timer.timeout.connect(kill)
+	timer=Timer.new()
+	timer.wait_time = 5
+	add_child(timer)
+	pull_kill_timer = timer
+	pull_kill_timer.timeout.connect(freeze_check)
 	await get_tree().create_timer(0.5).timeout
 	GDSync.set_gdsync_owner(self,Network.monster_id)
+	freeze = true
 	pass # Replace with function body.
 
 var cooldown = false
 
 var aimbotting = false
+
+func freeze_check():
+	if is_zero_approx(linear_velocity.length() + angular_velocity.length()):
+		freeze = true
 
 func kill():
 	being_pulled = false
@@ -34,6 +46,7 @@ func kill():
 func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,plr_path:NodePath,target_path:NodePath):
 	if being_pulled:
 		return
+	freeze = false
 	var plr:player
 	var target:player
 	plr = get_node(plr_path)

@@ -26,7 +26,7 @@ var last_velocity:float
 func _physics_process(delta: float) -> void:
 	if parent_rigid_body:
 		if parent_rigid_body.get_contact_count() > 0:
-			if last_velocity > sound_velocity and sound_cooldown < 1:
+			if last_velocity > sound_velocity and sound_cooldown < 1 and !sound_list_high_velocity.is_empty():
 				sound_cooldown = 4
 				print("physic")
 				var audio:SynchronizedAudioStreamPlayer3D=SynchronizedAudioStreamPlayer3D.new()
@@ -39,7 +39,7 @@ func _physics_process(delta: float) -> void:
 				get_tree().current_scene.add_child(audio)
 				spawned_sound.append(audio)
 				audio.play_synced()
-			elif last_velocity > (sound_velocity / 3) and sound_cooldown < 1:
+			elif last_velocity > (sound_velocity / 3) and sound_cooldown < 1 and !sound_list_low_velocity.is_empty():
 				sound_cooldown = 2
 				print("physic")
 				var audio:SynchronizedAudioStreamPlayer3D=SynchronizedAudioStreamPlayer3D.new()
