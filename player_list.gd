@@ -24,6 +24,8 @@ func _physics_process(delta: float) -> void:
 
 func _start_game():
 	Network.game_started = true
+	GeneralScreen.fade(1.25)
+	await get_tree().create_timer(1).timeout
 	for client_id:int in GDSync.lobby_get_all_clients():
 		join(client_id)
 

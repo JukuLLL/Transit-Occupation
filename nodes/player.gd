@@ -51,7 +51,6 @@ func owner_changed(id:int):
 	if is_owner:
 		$OmniLight3D.visible = true
 		first_person_camera.make_current()
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		var screen:Rect2=get_viewport().get_visible_rect()
 		crosshair.position = screen.size / 2
 		cross_hair_regular_pos = crosshair.position
@@ -66,16 +65,23 @@ func owner_changed(id:int):
 			monster = true
 			add_child(filter.instantiate())
 			grapple_ray.set_collision_mask_value(32,false)
+			head.enable_monster()
 		else:
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
 
 func _ready():
+	GDSync.expose_node(self)
+	GDSync.expose_func(hit_by_phyics)
 	grapple_ray = head.grapple_ray
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	if monster:
 		grapple_ray.target_position.z = (25 * grapple_distance) * -1
+	await get_tree().physics_frame
+	GDSync.set_gdsync_owner($MeshInstance3D,name.to_int())
+	await get_tree().physics_frame
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _unhandled_input(event):
@@ -103,9 +109,17 @@ func _unhandled_input(event):
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+var last_movement:float=0
 
 func _physics_process(delta):
 	if !GDSync.is_gdsync_owner(self): return
+	if velocity.length() > 0:
+		last_movement = 500
+		$MeshInstance3D.set_layer_mask_value(1,true)
+	elif last_movement < 1:
+		$MeshInstance3D.set_layer_mask_value(1,false)
+	else:
+		last_movement -= 1
 	$Label.text = str(velocity.length())
 	$Label2.text = str(grappling_target)
 	# DASH COOLDOWN
@@ -258,13 +272,9 @@ func fling_object():
 		if !fling_target.cooldown:
 			$selection_ring.visible = true
 			$selection_ring.global_position = fling_target.global_position
-			fling_target.add_collision_exception_with(self)
-			ray.add_exception(fling_target)
 		if fling_target.global_position.distance_to(global_position) > 25:
 				grab_held = false
-				fling_target.remove_collision_exception_with(self)
 				$selection_ring.visible = false
-				ray.remove_exception(fling_target)
 				fling_target = null
 	if Input.is_action_just_pressed("grab") and !grab_held:
 		if ray.is_colliding():
@@ -277,20 +287,23 @@ func fling_object():
 		if fling_target != null:
 			grab_held = false
 			$selection_ring.visible = false
-			ray.add_exception(fling_target)
 			ray.force_raycast_update()
+			var host:int=GDSync.get_host()
 			await get_tree().physics_frame
 			if ray.is_colliding():
 				if ray.get_collider().is_class("CharacterBody3D"):
-					fling_target._pull_and_throw(global_position,ray.get_collision_point(),26,4,self)	
+					GDSync.call_func_all(fling_target._pull_and_throw,global_position,ray.get_collision_point(),26,4,self.get_path(),ray.get_collider().get_path())
 				else:
-					fling_target._pull_and_throw(global_position,ray.get_collision_point(),16,4,self)	
+					GDSync.call_func_all(fling_target._pull_and_throw,global_position,ray.get_collision_point(),16,4,self.get_path(),"")	
 			else:
-				fling_target._pull_and_throw(global_position,to_global(ray.target_position),12,4,self)	
+				GDSync.call_func_all(fling_target._pull_and_throw,global_position,to_global(ray.target_position),12,4,self.get_path(),"")	
 			fling_target = null
-			ray.remove_exception(fling_target)
 			
 var fling_target:flingable_object
+
+func hit_by_phyics():
+	velocity /= 10
+	head.damage_indicator()
 	
 func set_grapple_target(pos:Vector3):
 	grapple_pos = pos

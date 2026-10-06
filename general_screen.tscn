@@ -1,0 +1,134 @@
+[gd_scene format=3 uid="uid://d373hflq8a3jj"]
+
+[ext_resource type="Script" uid="uid://c05ypy0avldhd" path="res://general_screen.gd" id="1_qbauc"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_2payr"]
+
+[sub_resource type="Animation" id="Animation_2lvwe"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("fade/TextureRect:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0, 0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_63jv6"]
+resource_name = "fade"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("fade/TextureRect:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 0), Color(0, 0, 0, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_w7wxr"]
+resource_name = "fade_2"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("fade/TextureRect:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 1), Color(0, 0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_sf1cy"]
+_data = {
+&"RESET": SubResource("Animation_2lvwe"),
+&"fade": SubResource("Animation_63jv6"),
+&"fade_2": SubResource("Animation_w7wxr")
+}
+
+[sub_resource type="Shader" id="Shader_wn5kw"]
+code = "shader_type canvas_item;
+
+// Stronger defaults
+uniform float radius:    hint_range(0.0, 1.0) = 0.22;  // where darkening starts (smaller = more encroachment)
+uniform float softness:  hint_range(0.0, 1.0) = 0.38;  // feather width toward center
+uniform float intensity: hint_range(0.0, 3.0) = 2.00;  // overall darkness
+uniform float contrast:  hint_range(0.5, 4.0) = 2.20;  // >1.0 sharpens falloff
+uniform vec4 vignette_color: source_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+void fragment() {
+    vec2 uv = SCREEN_UV;
+    vec2 centered = uv - vec2(0.5);
+
+    // Edge-driven shape (0 at center, 1 at edges):
+    // Chebyshev distance = pushes from ALL edges uniformly
+    float edge_box = max(abs(centered.x) * 2.0, abs(centered.y) * 2.0);
+
+    // Blend a little radial in to avoid a \"boxy\" look (optional)
+    float edge_radial = length(centered) * 2.0; // 0 center -> ~1 corners
+    float shape = mix(edge_box, edge_radial, 0.25);
+
+    // Darken from radius inward with feather = softness
+    float v = smoothstep(radius, radius + softness, shape);
+    v = pow(v, contrast);
+
+    vec4 overlay = vignette_color;
+    overlay.a = clamp(v * intensity, 0.0, 1.0);
+
+    // Output just the vignette color/alpha (use on a full-screen ColorRect)
+    COLOR = overlay;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2payr"]
+shader = SubResource("Shader_wn5kw")
+shader_parameter/radius = 0.626000029735
+shader_parameter/softness = 0.73600003496
+shader_parameter/intensity = 2.0
+shader_parameter/contrast = 2.2
+shader_parameter/vignette_color = Color(0, 0, 0, 1)
+
+[node name="GeneralScreen" type="Node2D" unique_id=1276176020]
+script = ExtResource("1_qbauc")
+
+[node name="fade" type="CanvasLayer" parent="." unique_id=1449334346]
+layer = 5
+
+[node name="TextureRect" type="TextureRect" parent="fade" unique_id=1281302948]
+self_modulate = Color(0, 0, 0, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("CanvasTexture_2payr")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1291635209]
+libraries/ = SubResource("AnimationLibrary_sf1cy")
+
+[node name="screen" type="CanvasLayer" parent="." unique_id=228483557]
+layer = 4
+
+[node name="TextureRect" type="TextureRect" parent="screen" unique_id=1664111781]
+self_modulate = Color(0, 0, 0, 1)
+material = SubResource("ShaderMaterial_2payr")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("CanvasTexture_2payr")

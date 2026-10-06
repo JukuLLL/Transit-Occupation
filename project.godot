@@ -29,6 +29,7 @@ buses/default_bus_layout="uid://bo5sbndbhd6g5"
 
 GDSync="*uid://cgo4kiocg4a4a"
 Network="*uid://bokr77itbsfk0"
+GeneralScreen="*uid://d373hflq8a3jj"
 
 [display]
 
@@ -36,7 +37,7 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/always_on_top=true
 window/stretch/mode="viewport"
-window/vsync/vsync_mode=0
+window/vsync/vsync_mode=2
 
 [editor_plugins]
 
@@ -107,6 +108,7 @@ grab={
 
 [layer_names]
 
+3d_render/layer_10="plr"
 3d_physics/layer_31="fling"
 3d_physics/layer_32="grapple_block"
 
@@ -118,5 +120,9 @@ grab={
 
 rendering_device/driver.windows="d3d12"
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+global_illumination/voxel_gi/quality=1
+textures/default_filters/anisotropic_filtering_level=3
+anti_aliasing/quality/msaa_3d=1
+scaling_3d/scale=2.0
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 occlusion_culling/use_occlusion_culling=true

@@ -1,4 +1,4 @@
-extends Node3D
+class_name head extends Node3D
 
 @export var first_person_camera:Camera3D
 @export var third_person_camera:Camera3D
@@ -12,6 +12,14 @@ extends Node3D
 
 func enable_monster():
 	if plr.monster:
-		$monster_vision_modifier/TextureRect.visible = true
-	else:
-		$monster_vision_modifier/TextureRect.queue_free()
+		first_person_camera.set_cull_mask_value(4,false)
+		third_person_camera.set_cull_mask_value(4,false)
+		first_person_camera.set_cull_mask_value(10,false)
+		third_person_camera.set_cull_mask_value(10,false)
+
+
+func _physics_process(delta: float) -> void:
+	$CanvasLayer/TextureRect.self_modulate = lerp($CanvasLayer/TextureRect.self_modulate,Color.from_rgba8(255,0,0,0),delta)
+
+func damage_indicator():
+	$CanvasLayer/TextureRect.self_modulate += (Color.RED / 4)

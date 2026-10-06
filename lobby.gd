@@ -1,5 +1,6 @@
 extends Control
 
+var maps:Array=["uid://cket7yaadcvm3"]
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -36,7 +37,7 @@ func _leave(client_id:int):
 
 func _on_timer_timeout() -> void:
 	if GDSync.is_host():
-		GDSync.call_func_all(change_level)
+		GDSync.call_func_all(change_level,maps.pick_random())
 	pass # Replace with function body.
 	
 var started = false
@@ -45,7 +46,7 @@ var monster_id:int=0
 
 func set_side():
 	if GDSync.is_host():
-		if monster_id != 0:
+		if monster_id == 0:
 			monster_id = GDSync.lobby_get_all_clients().pick_random()
 		for client:int in GDSync.lobby_get_all_clients():
 			print(client)
@@ -65,18 +66,19 @@ func set_side_data(monster:bool):
 func set_monster_id(client:int):
 	Network.monster_id = client
 		
-func change_level():
+func change_level(map:String):
 	if started: return
 	set_side()
 	started = true
 	$Timer.stop()
+	GeneralScreen.fade(3)
 	await get_tree().create_timer(3).timeout
-	get_tree().change_scene_to_file("uid://dcdm1p1khuy4n")
+	get_tree().change_scene_to_file(map)
 
 
 func _on_start_pressed() -> void:
 	if GDSync.is_host():
-		GDSync.call_func_all(change_level)
+		GDSync.call_func_all(change_level,maps.pick_random())
 	pass # Replace with function body.
 
 
