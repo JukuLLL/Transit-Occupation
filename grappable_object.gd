@@ -23,10 +23,11 @@ func _ready() -> void:
 	timer=Timer.new()
 	timer.wait_time = 5
 	add_child(timer)
-	pull_kill_timer = timer
-	pull_kill_timer.timeout.connect(freeze_check)
+	freeze_timer = timer
+	freeze_timer.timeout.connect(freeze_check)
 	await get_tree().create_timer(0.5).timeout
 	GDSync.set_gdsync_owner(self,Network.monster_id)
+	await get_tree().create_timer(3).timeout
 	freeze = true
 	pass # Replace with function body.
 
@@ -41,11 +42,13 @@ func freeze_check():
 func kill():
 	being_pulled = false
 	aimbotting = false
+	freeze_timer.paused = false
 	pass
 
 func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,plr_path:NodePath,target_path:NodePath):
 	if being_pulled:
 		return
+	freeze_timer.paused = true
 	freeze = false
 	var plr:player
 	var target:player
@@ -85,6 +88,9 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 			if aimbot_timer < 1:
 				aimbotting = false
 				continue
+	
+	freeze_timer.paused = false
+	freeze_timer.start()
 			
 	await get_tree().create_timer(5).timeout
 	cooldown = false

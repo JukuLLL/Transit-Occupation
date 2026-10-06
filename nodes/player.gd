@@ -83,7 +83,6 @@ func _ready():
 	await get_tree().physics_frame
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-
 func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self): return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -304,6 +303,9 @@ var fling_target:flingable_object
 func hit_by_phyics():
 	velocity /= 10
 	head.damage_indicator()
+	head.shake(1)
+	
+var grapple_spots:Array[grabble_point]
 	
 func set_grapple_target(pos:Vector3):
 	grapple_pos = pos
@@ -315,16 +317,24 @@ func set_grapple_target(pos:Vector3):
 			crosshair.play("interact")
 		
 func grappling_hook(delta:float):
-	var mouse_side:float = Input.get_axis("left_click","right_click")
-	if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
-		var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
-		velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
-	elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
-		#grapple_ray.rotation = Vector3.ZERO
-		in_grapple = false
-		crosshair.position = cross_hair_regular_pos
-		crosshair.play("default")
-		pass
+	if is_inside_tree():
+		if !grapple_spots.has(get_tree().get_nodes_in_group("grapple")):
+			grapple_spots.append_array(get_tree().get_nodes_in_group("grapple"))
+		var closest:grabble_point = grapple_spots.get(0)
+		for spot:grabble_point in grapple_spots:
+			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
+				closest = spot
+		set_grapple_target(closest.global_position)
+		var mouse_side:float = Input.get_axis("left_click","right_click")
+		if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
+			var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
+			velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
+		elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
+			#grapple_ray.rotation = Vector3.ZERO
+			in_grapple = false
+			crosshair.position = cross_hair_regular_pos
+			crosshair.play("default")
+			pass
 		
 		
 

@@ -30,6 +30,7 @@ buses/default_bus_layout="uid://bo5sbndbhd6g5"
 GDSync="*uid://cgo4kiocg4a4a"
 Network="*uid://bokr77itbsfk0"
 GeneralScreen="*uid://d373hflq8a3jj"
+_CameraShake3D="*uid://c83c8uk2p6jr8"
 
 [display]
 
@@ -39,9 +40,13 @@ window/size/always_on_top=true
 window/stretch/mode="viewport"
 window/vsync/vsync_mode=2
 
+[dotnet]
+
+project/assembly_name="Transit Occupation"
+
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GodotTogether/plugin.cfg")
+enabled=PackedStringArray("res://addons/CameraShake3D/plugin.cfg", "res://addons/GD-Sync/plugin.cfg", "res://addons/GodotTogether/plugin.cfg")
 
 [global_group]
 
@@ -123,6 +128,5 @@ lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 global_illumination/voxel_gi/quality=1
 textures/default_filters/anisotropic_filtering_level=3
 anti_aliasing/quality/msaa_3d=1
-scaling_3d/scale=2.0
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 occlusion_culling/use_occlusion_culling=true
