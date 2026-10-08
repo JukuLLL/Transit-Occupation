@@ -77,6 +77,7 @@ func owner_changed(id:int):
 func _ready():
 	GDSync.expose_node(self)
 	GDSync.expose_func(hit_by_phyics)
+	GDSync.expose_func(change_gravity_state)
 	grapple_ray = head.grapple_ray
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	if monster:
@@ -252,8 +253,8 @@ func _physics_process(delta):
 		grappling_target = grapple_ray.get_collider()
 	
 	grappling_hook(delta)
-	
-	ability_check()
+	if monster:
+		ability_check()
 	
 	move_and_slide()
 	
@@ -398,6 +399,11 @@ func gravity_flip():
 		GDSync.emit_signal_remote_all(Network.unfreeze)
 		if $gravity_area/CollisionShape3D.disabled == false:
 			$gravity_area/CollisionShape3D.disabled = true
+			for body:Node3D in $gravity_area.get_overlapping_bodies():
+				if body.is_class("CharacterBody3D"):
+					var plr:player=body
+					if plr.gravity_state == 1:
+						GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
 		else:
 			$gravity_area/CollisionShape3D.disabled = false
 		
@@ -423,7 +429,7 @@ func change_gravity_state(to:int):
 
 func _on_gravity_area_body_exited(body: Node3D) -> void:
 	if body.is_class("CharacterBody3D"):
-				var plr:player=body
-				if plr.gravity_state == -1:
-					GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
+		var plr:player=body
+		if plr.gravity_state == -1:
+			GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
 	pass # Replace with function body.
