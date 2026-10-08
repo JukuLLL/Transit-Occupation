@@ -404,6 +404,7 @@ func gravity_flip():
 					var plr:player=body
 					if plr.gravity_state == 1:
 						GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
+						GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,false)
 		else:
 			$gravity_area/CollisionShape3D.disabled = false
 		
@@ -413,6 +414,8 @@ func gravity_flip():
 				var plr:player=body
 				if plr.gravity_state == 1:
 					GDSync.call_func_on(plr.name.to_int(),change_gravity_state,-1)
+					if !monster:
+						GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,true)
 		
 	
 func change_gravity_state(to:int):
@@ -432,4 +435,14 @@ func _on_gravity_area_body_exited(body: Node3D) -> void:
 		var plr:player=body
 		if plr.gravity_state == -1:
 			GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
+			GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,false)
+	pass # Replace with function body.
+
+
+func _on_gravity_area_body_entered(body: Node3D) -> void:
+	if monster:
+		if body.is_class("RigidBody3D"):
+			var grappable:flingable_object=body
+			grappable.freeze_timer.start()
+			grappable.freeze = false
 	pass # Replace with function body.
