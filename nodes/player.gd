@@ -69,16 +69,15 @@ func owner_changed(id:int):
 			add_child(filter.instantiate())
 			grapple_ray.set_collision_mask_value(32,false)
 			head.enable_monster()
-			GDSync.set_gdsync_owner($gravity_area/CollisionShape3D,id)
 		else:
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
 
 func _ready():
-	GDSync.expose_node(self)
 	GDSync.expose_func(hit_by_phyics)
 	GDSync.expose_func(change_gravity_state)
+	GDSync.expose_var(self,"gravity_state")
 	grapple_ray = head.grapple_ray
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	if monster:
@@ -98,11 +97,11 @@ func _unhandled_input(event):
 		head.rotation.x += (-event.relative.y * mouse_sensitivity)
 		
 		# Prevent the camera from flipping upside down
-		#head.rotation.x = clamp(
-			#head.rotation.x,
-			#deg_to_rad(-80),
-			#deg_to_rad(80)
-		#)
+		head.rotation.x = clamp(
+			head.rotation.x,
+			deg_to_rad(-80),
+			deg_to_rad(80)
+		)
 	
 	if event.is_action_pressed("toggle_camera"):
 		toggle_camera()
@@ -117,7 +116,7 @@ var last_movement:float=0
 
 func visibility_to_blind():
 	if velocity.length() > 0:
-		last_movement = 500
+		last_movement = 1500
 		$MeshInstance3D.set_layer_mask_value(1,true)
 	elif last_movement < 1:
 		$MeshInstance3D.set_layer_mask_value(1,false)
@@ -126,7 +125,6 @@ func visibility_to_blind():
 
 func _physics_process(delta):
 	if !GDSync.is_gdsync_owner(self): return
-	GDSync.sync_var(self,"gravity_state")
 	visibility_to_blind()
 		
 	$Label.text = str(velocity.length())
@@ -416,13 +414,13 @@ func gravity_flip():
 			if body.is_class("CharacterBody3D"):
 				var plr:player=body
 				if plr.gravity_state == 1:
-					GDSync.call_func_on(plr.name.to_int(),change_gravity_state,-1)
-					if !monster:
-						GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,true)
+					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),change_gravity_state,-1)
+					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
 		
 	
 func change_gravity_state(to:int):
 	gravity_state = to
+	GDSync.sync_var(self,"gravity_state")
 	if gravity_state == 1:
 		up_direction = Vector3.UP
 		create_tween().tween_property(self,"global_rotation_degrees:z",0,1)
@@ -437,8 +435,8 @@ func _on_gravity_area_body_exited(body: Node3D) -> void:
 	if body.is_class("CharacterBody3D"):
 		var plr:player=body
 		if plr.gravity_state == -1:
-			GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
-			GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,false)
+			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),change_gravity_state,1)
+			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,false)
 	pass # Replace with function body.
 
 
