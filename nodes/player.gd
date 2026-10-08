@@ -69,6 +69,7 @@ func owner_changed(id:int):
 			add_child(filter.instantiate())
 			grapple_ray.set_collision_mask_value(32,false)
 			head.enable_monster()
+			GDSync.set_gdsync_owner($gravity_area/CollisionShape3D,id)
 		else:
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
@@ -399,6 +400,7 @@ func gravity_flip():
 		GDSync.emit_signal_remote_all(Network.unfreeze)
 		if $gravity_area/CollisionShape3D.disabled == false:
 			$gravity_area/CollisionShape3D.disabled = true
+			$gravity_area/CollisionShape3D.visible = false
 			for body:Node3D in $gravity_area.get_overlapping_bodies():
 				if body.is_class("CharacterBody3D"):
 					var plr:player=body
@@ -407,6 +409,7 @@ func gravity_flip():
 						GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,false)
 		else:
 			$gravity_area/CollisionShape3D.disabled = false
+			$gravity_area/CollisionShape3D.visible = true
 		
 	if !$gravity_area/CollisionShape3D.disabled:
 		for body:Node3D in $gravity_area.get_overlapping_bodies():
