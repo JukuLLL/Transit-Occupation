@@ -14,6 +14,8 @@ var freeze_timer:Timer
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	Network.unfreeze.connect(func unfreeze():
+		self.freeze = false; freeze_timer.start())
 	GDSync.expose_node(self)
 	var timer:Timer=Timer.new()
 	timer.wait_time = 10

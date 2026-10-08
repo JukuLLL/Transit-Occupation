@@ -42,6 +42,8 @@ var ground_friction := 5000
 var has_extra_momentum := false
 var cross_hair_regular_pos:Vector2
 var grapple_area:Rect2
+var gravity_state = 1
+
 @export var filter:PackedScene
 
 func owner_changed(id:int):
@@ -88,17 +90,17 @@ func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self): return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Turn the player left/right
-		rotate_y(-event.relative.x * mouse_sensitivity)
+		rotation.y += (-event.relative.x * mouse_sensitivity) * gravity_state
 		
 		# Look up/down
-		head.rotate_x(-event.relative.y * mouse_sensitivity)
+		head.rotation.x += (-event.relative.y * mouse_sensitivity)
 		
 		# Prevent the camera from flipping upside down
-		head.rotation.x = clamp(
-			head.rotation.x,
-			deg_to_rad(-80),
-			deg_to_rad(80)
-		)
+		#head.rotation.x = clamp(
+			#head.rotation.x,
+			#deg_to_rad(-80),
+			#deg_to_rad(80)
+		#)
 	
 	if event.is_action_pressed("toggle_camera"):
 		toggle_camera()
@@ -122,7 +124,7 @@ func visibility_to_blind():
 
 func _physics_process(delta):
 	if !GDSync.is_gdsync_owner(self): return
-	
+	GDSync.sync_var(self,"gravity_state")
 	visibility_to_blind()
 		
 	$Label.text = str(velocity.length())
@@ -156,7 +158,7 @@ func _physics_process(delta):
 		# Jump
 		if Input.is_action_just_pressed("jump"):
 			jumped = true
-			velocity.y = jump_velocity * jump_multiplier
+			velocity.y = (jump_velocity * jump_multiplier) * gravity_state
 			
 			# Preserve existing momentum.
 			# This is what allows bunnyhopping.
@@ -223,7 +225,7 @@ func _physics_process(delta):
 	# AIR MOVEMENT
 	else:
 		# Gravity
-			velocity.y -= gravity * delta
+			velocity.y -= (gravity * delta) * gravity_state
 			
 			var target_velocity := direction
 			
@@ -348,6 +350,7 @@ func toggle_camera():
 
 func ability_check():
 	fling_object()
+	gravity_flip()
 	pass
 	
 	
@@ -389,4 +392,38 @@ func fling_object():
 			else:
 				GDSync.call_func_all(fling_target._pull_and_throw,global_position,to_global(ray.target_position),12,4,self.get_path(),"")	
 			fling_target = null
+			
+func gravity_flip():
+	if Input.is_action_just_pressed("grav"):
+		GDSync.emit_signal_remote_all(Network.unfreeze)
+		if $gravity_area/CollisionShape3D.disabled == false:
+			$gravity_area/CollisionShape3D.disabled = true
+		else:
+			$gravity_area/CollisionShape3D.disabled = false
+		
+	if !$gravity_area/CollisionShape3D.disabled:
+		for body:Node3D in $gravity_area.get_overlapping_bodies():
+			if body.is_class("CharacterBody3D"):
+				var plr:player=body
+				if plr.gravity_state == 1:
+					GDSync.call_func_on(plr.name.to_int(),change_gravity_state,-1)
+		
 	
+func change_gravity_state(to:int):
+	gravity_state = to
+	if gravity_state == 1:
+		up_direction = Vector3.UP
+		create_tween().tween_property(self,"global_rotation_degrees:z",0,1)
+		#global_rotation_degrees.z = 0
+	elif gravity_state == -1:
+		up_direction = Vector3.DOWN
+		create_tween().tween_property(self,"global_rotation_degrees:z",180,1)
+		#global_rotation_degrees.z = 180
+
+
+func _on_gravity_area_body_exited(body: Node3D) -> void:
+	if body.is_class("CharacterBody3D"):
+				var plr:player=body
+				if plr.gravity_state == -1:
+					GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
+	pass # Replace with function body.
