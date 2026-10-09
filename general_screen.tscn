@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://d373hflq8a3jj"]
 
 [ext_resource type="Script" uid="uid://c05ypy0avldhd" path="res://general_screen.gd" id="1_qbauc"]
+[ext_resource type="Shader" uid="uid://d0p715iv1071u" path="res://shaders/chaos.gdshader" id="2_2lvwe"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_2payr"]
 
@@ -100,6 +101,14 @@ shader_parameter/intensity = 2.0
 shader_parameter/contrast = 2.2
 shader_parameter/vignette_color = Color(0, 0, 0, 1)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_63jv6"]
+shader = ExtResource("2_2lvwe")
+shader_parameter/chaos = 1.0
+shader_parameter/radius = 0.5
+shader_parameter/attenuation = 2.0
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_w7wxr"]
+
 [node name="GeneralScreen" type="Node2D" unique_id=1276176020]
 script = ExtResource("1_qbauc")
 
@@ -132,3 +141,18 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = SubResource("CanvasTexture_2payr")
+
+[node name="status" type="CanvasLayer" parent="." unique_id=2083315432]
+layer = 3
+
+[node name="chaos" type="TextureRect" parent="status" unique_id=142318810]
+visible = false
+self_modulate = Color(0, 0, 0, 1)
+material = SubResource("ShaderMaterial_63jv6")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("CanvasTexture_w7wxr")
