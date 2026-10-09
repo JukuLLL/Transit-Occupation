@@ -26,7 +26,10 @@ func _on_create_pressed() -> void:
 
 
 func _on_option_button_item_selected(index: int) -> void:
-	Network.side = $OptionButton.get_item_text(index)
+	if index == 2:
+		Network.forced = ""
+	else:
+		Network.forced = $OptionButton.get_item_text(index)
 	pass # Replace with function body.
 
 

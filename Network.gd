@@ -10,6 +10,8 @@ var game_started = false
 
 var monster_id:int
 
+var forced = ""
+
 func _ready() -> void:
 	GDSync.lobby_joined.connect(joined)
 	GDSync.lobby_received.connect(lobby_recived)
