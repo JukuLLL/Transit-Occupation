@@ -12,6 +12,7 @@ config_version=5
 
 version="1.0.2"
 protectedMode=false
+uniqueUsername=true
 
 [application]
 

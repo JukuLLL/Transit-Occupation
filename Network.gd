@@ -12,7 +12,10 @@ var monster_id:int
 
 var forced = ""
 
+signal unfreeze
+
 func _ready() -> void:
+	GDSync.expose_signal(unfreeze)
 	GDSync.lobby_joined.connect(joined)
 	GDSync.lobby_received.connect(lobby_recived)
 	GDSync.lobby_created.connect(lobby_create)

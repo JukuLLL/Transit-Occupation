@@ -2,6 +2,8 @@ class_name plr_list extends Node3D
 
 @export var base_player:PackedScene
 @export var base_monster:PackedScene
+@export var view_timer:Timer
+@export var view_timer_label:Label
 var started = false
 
 signal game_started
@@ -18,11 +20,11 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if GDSync.is_host():
-		if is_instance_valid($"../map_viewer/Camera3D/Timer"):
-			if $"../map_viewer/Camera3D/Timer":
-				if $"../map_viewer/Camera3D/Timer".is_stopped() and !started:
-					$"../map_viewer/Camera3D/Timer".start()
-				$"../map_viewer/Camera3D/Label".text = str(roundi($"../map_viewer/Camera3D/Timer".time_left))
+		if is_instance_valid(view_timer):
+			if view_timer:
+				if view_timer.is_stopped() and !started:
+					view_timer.start()
+				view_timer_label.text = str(roundi(view_timer.time_left))
 				
 
 func _start_game():
@@ -42,7 +44,7 @@ func leave(client_id:int):
 	
 
 func join(client_id:int) -> void:
-	if GDSync.player_get_data(client_id,"TEAM") == "MONSTER":
+	if GDSync.player_get_data(client_id,"TEAM") == "MONSTER" or Network.forced == "MONSTER":
 		var plr:player=base_monster.instantiate()
 		print("create_plr " + str(client_id))
 		add_child(plr)
