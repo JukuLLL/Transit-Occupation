@@ -48,7 +48,7 @@ project/assembly_name="Transit Occupation"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/CameraShake3D/plugin.cfg", "res://addons/GD-Sync/plugin.cfg", "res://addons/GodotTogether/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/at-icons/plugin.cfg")
+enabled=PackedStringArray("res://addons/CameraShake3D/plugin.cfg", "res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg")
 
 [global_group]
 

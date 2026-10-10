@@ -3,6 +3,7 @@ class_name player extends CharacterBody3D
 @export var speed := 5.0
 @export var sprint_speed := 10.0
 @export var jump_multiplier:float=1
+@export var max_bhop_inaccuracy:int=20
 @export var mouse_sensitivity := 0.002
 @export var grapple_ray:RayCast3D
 @export var grapple_force:float=1
@@ -15,31 +16,25 @@ class_name player extends CharacterBody3D
 @onready var head = $Head
 @onready var crosshair = $Head.crosshair
 @onready var first_person_camera:Camera3D = $Head.first_person_camera
-@onready var third_person_camera = $Head.third_person_camera
+@onready var third_person_camera_spot = $Head.third_person_camera
 @onready var player_mesh = $MeshInstance3D
 
 var first_person := true
 
 # DASH
-var dash_cooldown := 1
-var dash_timer := 0.4
-var dash_speed := 9
-var dash_duration := 0.4
-var dash_momentum_timer := 0.7
+var dash_speed = 1
 
 # JUMP
-var jumped = false
+var bhop = false
+var floor_counter = 0
 var jump_velocity := 7.0
-var gravity := 20.0
+@export var gravity :Vector3= Vector3(0,0.4,0)
+var new_speed = 5.0
 
-# MOVEMENT
-var air_acceleration := 15
-var ground_acceleration := 20.0
-var ground_friction := 5000
 
-# Keeps track of whether the player has extra momentum
-# from a dash or bunnyhopping.
-var has_extra_momentum := false
+
+
+
 var cross_hair_regular_pos:Vector2
 var grapple_area:Rect2
 var gravity_state = 1
@@ -60,7 +55,6 @@ func owner_changed(id:int):
 		grapple_area = screen
 		grapple_area.position = grapple_area.end * 1.5
 		first_person_camera.current = true
-		third_person_camera.current = false
 		player_mesh.visible = false
 		first_person_camera.make_current()
 		await get_tree().physics_frame
@@ -86,6 +80,7 @@ func _ready():
 	GDSync.set_gdsync_owner($MeshInstance3D,name.to_int())
 	await get_tree().physics_frame
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	new_speed = speed
 
 func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self): return
@@ -122,19 +117,8 @@ func visibility_to_blind():
 		$MeshInstance3D.set_layer_mask_value(1,false)
 	else:
 		last_movement -= 1
-
-func _physics_process(delta):
-	if !GDSync.is_gdsync_owner(self): return
-	visibility_to_blind()
 		
-	$Label.text = str(velocity.length())
-	$Label2.text = str(grappling_target)
-	# DASH COOLDOWN
-	if dash_timer > 0:
-		dash_timer -= delta
-	
-	
-	# GET MOVEMENT INPUT
+func movement(delta):
 	var input := Input.get_vector(
 		"move_left",
 		"move_right",
@@ -143,109 +127,60 @@ func _physics_process(delta):
 	)
 	
 	var direction := Vector3(input.x, 0, input.y)
-	
-	# Convert movement from local player space to world space
 	direction = transform.basis * direction
 	direction.y = 0
-	
 	if direction.length() > 0:
 		direction = direction.normalized()
 	
-	
-	# GROUND MOVEMENT
+	floor_counter = clampi(floor_counter,0,max_bhop_inaccuracy + 1)
+		
+	if Input.is_action_pressed("sprint"):
+		if !bhop:
+			new_speed = lerpf(new_speed,sprint_speed,delta * 5)
+	else:
+		if !bhop:
+			new_speed = lerpf(new_speed,speed,delta * 5)
+		
 	if is_on_floor():
 		
-		# Jump
+		floor_counter += 1
 		if Input.is_action_just_pressed("jump"):
-			jumped = true
-			velocity.y = (jump_velocity * jump_multiplier) * gravity_state
-			
-			# Preserve existing momentum.
-			# This is what allows bunnyhopping.
-			velocity.x -= direction.x
-			velocity.z -= direction.z
-			
-			# Keep the extra momentum when jumping
-			if has_extra_momentum:
-				has_extra_momentum = true
-		
+			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
+			if velocity.length() > 0.2:
+				bhop = true
+				floor_counter = 0
 		else:
-			# DASH MOMENTUM
-			if has_extra_momentum:
-				# Countdown the dash momentum
-				dash_momentum_timer -= delta
-				
-				# Dash has finished
-				if dash_momentum_timer <= 0:
-					# Completely stop the player
-					velocity.x = move_toward(velocity.x,0,delta * 250)
-					velocity.z = move_toward(velocity.z,0,delta * 250)
-					
-					if velocity.length() == 0:
-						has_extra_momentum = false
-			
-			# NORMAL GROUND MOVEMENT
-			else:
-				jumped = false
-				if direction:
-					var current_speed := speed
-					
-					if Input.is_action_pressed("sprint"):
-						current_speed = sprint_speed
-					
-					var target_velocity := direction * current_speed
-					
-					velocity.x = move_toward(
-						velocity.x,
-						target_velocity.x,
-						ground_acceleration * delta
-					)
-					
-					velocity.z = move_toward(
-						velocity.z,
-						target_velocity.z,
-						ground_acceleration * delta
-					)
-				
-				else:
-					# Stop normal movement
-					velocity.x = move_toward(
-						velocity.x,
-						0,
-						ground_friction * delta
-					)
-					
-					velocity.z = move_toward(
-						velocity.z,
-						0,
-						ground_friction * delta
-					)
-	
-	
-	# AIR MOVEMENT
-	else:
-		# Gravity
-			velocity.y -= (gravity * delta) * gravity_state
-			
-			var target_velocity := direction
-			
-			velocity.x = move_toward(
-				velocity.x,
-				target_velocity.x,
-				(ground_acceleration * 2) * delta
-			)
-			
-			velocity.z = move_toward(
-				velocity.z,
-				target_velocity.z,
-				(ground_acceleration * 2) * delta
-			)
+			velocity.y = 0
+		if floor_counter > max_bhop_inaccuracy - 1:
+			bhop = false
+		if input:
+			velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 40)
+			velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 40)
+		else:
+			if !bhop:
+				velocity.x -= velocity.x / 5
+				velocity.z -= velocity.z / 5
 		
+	else:
+		velocity.y -= gravity.y * gravity_state
+		if input:
+			if !bhop:
+				velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 35)
+				velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 35)
+		else:
+			if !bhop:
+				velocity.x -= velocity.x / 10
+				velocity.z -= velocity.z / 10
+
+func _physics_process(delta):
+	if !GDSync.is_gdsync_owner(self): return
+	visibility_to_blind()
+		
+	$Label.text = str(velocity.length())
+	$Label2.text = str(grappling_target)
 	
+	movement(delta)
 	
-	# DASH
-	if Input.is_action_just_pressed("dash") and dash_timer <= 0:
-		do_dash(direction)
 	if grapple_pos != null:
 		grapple_ray.look_at(grapple_pos)
 	if grapple_ray.is_colliding():
@@ -303,49 +238,21 @@ func grappling_hook(delta:float):
 			crosshair.position = cross_hair_regular_pos
 			crosshair.play("default")
 			pass
-		
-		
-
-
-func do_dash(direction: Vector3):
-	if direction == Vector3.ZERO:
-		direction = -transform.basis.z
-		direction.y = 0
-		direction = direction.normalized()
-	var current_dash = dash_speed
-	
-	if monster:
-		current_dash *= 2
-	# Add dash momentum
-	velocity.x += (velocity.x / 2) + direction.x * current_dash
-	velocity.z += (velocity.z / 2) + direction.z * current_dash
-	
-	# Start the dash momentum timer
-	dash_momentum_timer = dash_duration
-	
-	# Remember that we're carrying dash momentum
-	has_extra_momentum = true
-	
-	# Start dash cooldown
-	dash_timer = dash_cooldown
 
 
 func toggle_camera():
 	first_person = not first_person
+	var third_transform:Vector3=head.to_local(third_person_camera_spot.global_position)
 	
 	if first_person:
-		first_person_camera.current = true
-		third_person_camera.current = false
-		
+		create_tween().tween_property(first_person_camera,"position",third_transform,1)
 		# Don't see our own body in first person
-		player_mesh.visible = false
+		player_mesh.visible = true
 	
 	else:
-		first_person_camera.current = false
-		third_person_camera.current = true
-		
+		create_tween().tween_property(first_person_camera,"position",Vector3.ZERO,1)
 		# Show body in third person
-		player_mesh.visible = true
+		player_mesh.visible = false
 		
 
 func ability_check():
