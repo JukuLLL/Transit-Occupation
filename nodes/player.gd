@@ -30,6 +30,7 @@ var floor_counter = 0
 var jump_velocity := 7.0
 @export var gravity :Vector3= Vector3(0,0.4,0)
 var new_speed = 5.0
+var new_velocity = Vector3.ZERO
 
 
 
@@ -163,10 +164,11 @@ func movement(delta):
 		
 	else:
 		velocity.y -= gravity.y * gravity_state
+		new_velocity = velocity
 		if input:
 			if !bhop:
 				velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 35)
-				velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 35)
+				velocity.z = move_toward(velocity.z,direction.z * new_speed, delta * 35)
 		else:
 			if !bhop:
 				velocity.x -= velocity.x / 10
