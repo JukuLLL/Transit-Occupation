@@ -44,7 +44,7 @@ func leave(client_id:int):
 	
 
 func join(client_id:int) -> void:
-	if GDSync.player_get_data(client_id,"TEAM") == "MONSTER" or Network.forced == "MONSTER":
+	if GDSync.player_get_data(client_id,"TEAM") == "MONSTER":
 		var plr:player=base_monster.instantiate()
 		print("create_plr " + str(client_id))
 		add_child(plr)

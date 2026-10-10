@@ -56,6 +56,15 @@ func create_lobby(local:bool=false):
 		Network.hosting = false
 		GDSync.lobby_create("ABCD")
 		GDSync.lobby_join("ABCD")
+		if local:
+			if forced == "MONSTER":
+				GDSync.player_set_data("TEAM","MONSTER")
+				Network.monster_id = GDSync.get_client_id()
+			else:
+				GDSync.player_set_data("TEAM","PLAYER")
+				Network.monster_id = 0
+
+	
 
 func lobby_create(lobby_name:String):
 	print(lobby_name)
