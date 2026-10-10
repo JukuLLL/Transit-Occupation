@@ -22,7 +22,8 @@ class_name player extends CharacterBody3D
 var first_person := true
 
 # DASH
-var dash_speed = 1
+@export var dash_speed = 10
+@export var dash_cooldown = 60
 
 # JUMP
 var bhop = false
@@ -31,6 +32,7 @@ var jump_velocity := 7.0
 @export var gravity :Vector3= Vector3(0,0.4,0)
 var new_speed = 5.0
 var new_velocity = Vector3.ZERO
+var friction = 5
 
 
 
@@ -141,6 +143,9 @@ func movement(delta):
 	else:
 		if !bhop:
 			new_speed = lerpf(new_speed,speed,delta * 5)
+	
+	dash_cooldown -= 1
+	dash_cooldown = clampi(dash_cooldown,0,INT32_MAX)
 		
 	if is_on_floor():
 		
@@ -152,6 +157,8 @@ func movement(delta):
 				floor_counter = 0
 		else:
 			velocity.y = 0
+		if Input.is_action_just_pressed("dash"):
+			dash()
 		if floor_counter > max_bhop_inaccuracy - 1:
 			bhop = false
 		if input:
@@ -159,8 +166,8 @@ func movement(delta):
 			velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 40)
 		else:
 			if !bhop:
-				velocity.x -= velocity.x / 5
-				velocity.z -= velocity.z / 5
+				velocity.x -= velocity.x / friction
+				velocity.z -= velocity.z / friction
 		
 	else:
 		velocity.y -= gravity.y * gravity_state
@@ -169,10 +176,27 @@ func movement(delta):
 			if !bhop:
 				velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 35)
 				velocity.z = move_toward(velocity.z,direction.z * new_speed, delta * 35)
+			else:
+				var horizontal_velocity = Vector3(velocity.x, 0, velocity.z)
+				var current_horizontal_speed = horizontal_velocity.length()
+				var new_horizontal_velocity = direction * current_horizontal_speed
+				velocity.x = move_toward(velocity.x,new_horizontal_velocity.x,delta * 35)
+				velocity.z = move_toward(velocity.z,new_horizontal_velocity.z, delta * 35)
 		else:
 			if !bhop:
 				velocity.x -= velocity.x / 10
 				velocity.z -= velocity.z / 10
+				
+func dash():
+	if dash_cooldown > 1:
+		return
+	bhop = true
+	floor_counter = 0
+	dash_cooldown = 60
+	var push:Vector3=transform.basis * Vector3.FORWARD
+	velocity += push * dash_speed
+	
+	pass
 
 func _physics_process(delta):
 	if !GDSync.is_gdsync_owner(self): return

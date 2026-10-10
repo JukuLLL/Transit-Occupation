@@ -9,9 +9,13 @@ var parent_rigid_body:RigidBody3D
 
 @export var sound_velocity:float
 
+@export var bus:String
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	parent_rigid_body = get_parent()
+	if bus.is_empty():
+		bus = AudioServer.get_bus_name(0)
 	pass # Replace with function body.
 
 var spawned_sound:Array[SynchronizedAudioStreamPlayer3D]
@@ -30,6 +34,7 @@ func _physics_process(delta: float) -> void:
 				sound_cooldown = 4
 				print("physic")
 				var audio:SynchronizedAudioStreamPlayer3D=SynchronizedAudioStreamPlayer3D.new()
+				audio.bus = bus
 				audio.stream = sound_list_high_velocity.pick_random()
 				audio.volume_db = 0.1
 				audio.pitch_scale = randf_range(0.95,1.02)
@@ -40,9 +45,10 @@ func _physics_process(delta: float) -> void:
 				spawned_sound.append(audio)
 				audio.play_synced()
 			elif last_velocity > (sound_velocity / 3) and sound_cooldown < 1 and !sound_list_low_velocity.is_empty():
-				sound_cooldown = 2
+				sound_cooldown = 3
 				print("physic")
 				var audio:SynchronizedAudioStreamPlayer3D=SynchronizedAudioStreamPlayer3D.new()
+				audio.bus = bus
 				audio.stream = sound_list_low_velocity.pick_random()
 				audio.volume_db = 0.1
 				audio.pitch_scale = randf_range(0.95,1.02)

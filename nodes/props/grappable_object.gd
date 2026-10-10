@@ -70,7 +70,7 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 	being_pulled = true
 	var pulling = true
 	if sound_physics:
-		sound_physics.sound_cooldown = 0
+		sound_physics.sound_cooldown = 1
 	while pulling:
 		apply_impulse(global_position.direction_to(from) * force,Vector3.UP)
 		await get_tree().physics_frame
@@ -83,7 +83,7 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	if sound_physics:
-		sound_physics.sound_cooldown = 0
+		sound_physics.sound_cooldown = 1
 	apply_central_impulse(global_position.direction_to(to) * (force * 4))
 	cooldown = true
 	
