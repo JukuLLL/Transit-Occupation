@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ss8eivlitmci"
-path.s3tc="res://.godot/imported/goat_sim_brown_goat_1.png-f58772fd2b330eabc3a1471d794b20d6.s3tc.ctex"
+path.s3tc="res://.godot/imported/goat_sim_brown_goat_1.png-d30cf254b768a865db051f8f55e2e84b.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -14,8 +14,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://temporary_models/goat_sim_brown_goat_1.png"
-dest_files=["res://.godot/imported/goat_sim_brown_goat_1.png-f58772fd2b330eabc3a1471d794b20d6.s3tc.ctex"]
+source_file="res://textures/goat_sim_brown_goat_1.png"
+dest_files=["res://.godot/imported/goat_sim_brown_goat_1.png-d30cf254b768a865db051f8f55e2e84b.s3tc.ctex"]
 
 [params]
 
