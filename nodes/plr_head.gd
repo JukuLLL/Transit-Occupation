@@ -9,10 +9,8 @@ class_name head extends Node3D
 
 @export var crosshair:AnimatedSprite2D
 
-@export var camera_shake_node:CameraShake3DNode
-
 func shake(intensity:float=1):
-	camera_shake_node._custom_shake(1 * intensity,1 * intensity)
+	Juicee.shake_camera_3d(first_person_camera,intensity,0.2)
 
 func enable_monster():
 	if plr.monster:

@@ -31,7 +31,7 @@ buses/default_bus_layout="uid://bo5sbndbhd6g5"
 GDSync="*uid://cgo4kiocg4a4a"
 Network="*uid://bokr77itbsfk0"
 GeneralScreen="*uid://d373hflq8a3jj"
-_CameraShake3D="*uid://c83c8uk2p6jr8"
+Juicee="*uid://b36fwfvmmv0xc"
 
 [display]
 
@@ -48,7 +48,7 @@ project/assembly_name="Transit Occupation"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/CameraShake3D/plugin.cfg", "res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg")
+enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/juicee/plugin.cfg")
 
 [file_customization]
 

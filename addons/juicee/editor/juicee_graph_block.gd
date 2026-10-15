@@ -1,0 +1,430 @@
+@tool
+class_name JuiceeGraphBlock
+extends GraphNode
+
+
+const MIN_PORTS := 2
+const MAX_PORTS := 8
+
+signal ports_changed(new_count: int)
+signal hovered
+signal unhovered
+
+# Flow control is plumbing, not juice. It shares one muted slate (the same one the
+# Flow effect category uses) so the effects stay the colourful thing on the canvas
+# and the wiring recedes.
+#
+# Trigger is deliberately the loudest thing in the graph. There is exactly one, it
+# is where execution starts, and against the grey it should be the first thing the
+# eye lands on. Green because that reads as "go" without needing a legend.
+const FLOW_COLOR := Color(0.55, 0.60, 0.70)
+const FLOW_ENTRY_COLOR := Color(0.14, 0.92, 0.24)
+
+const BUILTIN_META := {
+	"trigger":   {"title": "Trigger",   "sub": "Graph starts here",     "color": FLOW_ENTRY_COLOR, "icon": "res://addons/juicee/icons/trigger.svg",  "tip": "Entry point. Execution begins here when JuiceeGraphPlayer.play(graph) is called. Each graph needs exactly one Trigger."},
+	"split":     {"title": "Split",     "sub": "Run all paths at once", "color": FLOW_COLOR,       "icon": "res://addons/juicee/icons/split.svg",    "tip": "Fan-out. All connected outputs fire at the same time and run in parallel. Use for hits (Shake + Flash + Chromatic all at once)."},
+	"loop":      {"title": "Loop",      "sub": "Repeat the next chain", "color": FLOW_COLOR,       "icon": "res://addons/juicee/icons/loop.svg",     "tip": "Repeats the connected output chain N times sequentially. Each iteration waits for the previous one to finish."},
+	"random":    {"title": "Random",    "sub": "Pick one path",         "color": FLOW_COLOR,       "icon": "res://addons/juicee/icons/random.svg",   "tip": "Picks one connected output at random (weighted) and runs only that branch. Use for varied juicy responses."},
+	"condition": {"title": "Condition", "sub": "if / else branch",      "color": FLOW_COLOR,       "icon": "",                                        "tip": "Evaluates a GDScript expression against 'context'.\nPort 0 = True branch  ·  Port 1 = False branch.\nExamples:\n  context.health < 20\n  context.is_in_group(\"player\")\n  context.visible"},
+	"comment":   {"title": "Comment",   "sub": "",                       "color": FLOW_COLOR,       "icon": "",                                        "tip": "Visual annotation, no ports, never executes.\nUse to document graph sections or leave notes for teammates."},
+}
+
+var node_data: JuiceeGraphNodeData
+## What the block looks like at rest, faded when its effect is muted. Every flash and pulse
+## comes back to this rather than to white.
+var rest_modulate := Color.WHITE
+
+static func create(data: JuiceeGraphNodeData) -> JuiceeGraphBlock:
+	var block := JuiceeGraphBlock.new()
+	block.node_data = data
+	block.name = data.id
+	# Stored at 100%, drawn at the editor's scale, the way Godot's own graph editors do it, so a
+	# graph laid out on one screen keeps its spacing on another.
+	block.position_offset = data.graph_position * JuiceeEditorUtil.EDSCALE
+
+	var title_text: String
+	var subtitle_text: String
+	var icon_path: String
+	var color: Color
+	var has_input: bool
+	var out_ports: int = 1
+	var tooltip: String = ""
+
+	if data.type == "effect" and data.effect:
+		title_text = data.effect.get_display_name()
+		# Show the effect's category ("Camera", "Screen", "Object" ...) instead of the
+		# generic word "Effect" - the user can tell at a glance what scope it affects.
+		# Prefer the effect's own override, fall back to editor's central category map.
+		var script_path: String = (data.effect.get_script() as Script).resource_path
+		var basename: String = script_path.get_file().get_basename()
+		subtitle_text = effect_subtitle(data.effect)
+		# Tooltip falls back to the editor's central description map.
+		tooltip = data.effect.get_description()
+		if tooltip.is_empty():
+			tooltip = JuiceeEffectCatalog.EFFECT_DESCRIPTIONS.get(basename, "")
+		icon_path = data.effect.get_icon_path()
+		color = data.effect.get_category_color()
+		has_input = true
+	else:
+		var meta: Dictionary = BUILTIN_META.get(data.type, {"title": data.type, "sub": "", "color": Color.WHITE, "icon": "", "tip": ""})
+		title_text = meta["title"]
+		subtitle_text = meta["sub"]
+		icon_path = meta.get("icon", "")
+		color = meta["color"]
+		tooltip = meta.get("tip", "")
+		has_input = data.type != "trigger" and data.type != "comment"
+		if data.type == "split" or data.type == "random":
+			out_ports = clampi(int(data.properties.get("port_count", 3)), MIN_PORTS, MAX_PORTS)
+		elif data.type == "condition":
+			out_ports = 2
+		elif data.type == "comment":
+			out_ports = 0
+		# Loop shows its repeat count live: "Repeat × 3", or "Repeat × ∞" when infinite.
+		if data.type == "loop":
+			if bool(data.properties.get("infinite", false)):
+				subtitle_text = "Repeat × ∞"
+			else:
+				subtitle_text = "Repeat × %d" % int(data.properties.get("count", 3))
+
+	block.title = title_text
+	block.custom_minimum_size = (Vector2(200, 0) if data.type != "comment" else Vector2(220, 0)) * JuiceeEditorUtil.EDSCALE
+	# tooltip_text intentionally left empty - JuiceeHoverPanel handles descriptions.
+	block._apply_theme(color)
+	block._apply_titlebar_icon(icon_path)
+	if data.type == "effect" and data.effect:
+		var _script_path: String = (data.effect.get_script() as Script).resource_path
+		var _basename: String = _script_path.get_file().get_basename()
+		var _category: String = data.effect.get_category_name()
+		if _category.is_empty():
+			_category = JuiceeEffectCatalog.EFFECT_CATEGORIES.get(_basename, "")
+		# Only tag a block when the effect is restricted to one dimension. Of 114 effects
+		# 45 work in both, so tagging capability rather than restriction put icons on
+		# nearly every block and told you nothing; the restricted ones are the case where
+		# you might be about to wire it to a node it cannot touch.
+		var _dims: Array = JuiceeEffectCatalog.EFFECT_DIMENSIONS.get(_basename, [])
+		# And only when it does not match the scene being edited, the same rule as the Inspector.
+		var _restricted: bool = _dims.size() == 1 and String(_dims[0]) != JuiceeEditorUtil.scene_dimension()
+		block._apply_dimension_tags(_dims if _restricted else [], _category)
+		block._add_titlebar_preview_button()
+
+	# Build body children FIRST - set_slot must reference existing rows or
+	# Godot's port_cache stays at size 0 and complains every frame.
+	if data.type == "comment":
+		# Comment blocks have no ports - just a free-form text area.
+		var m := MarginContainer.new()
+		m.add_theme_constant_override("margin_top", int(4 * JuiceeEditorUtil.EDSCALE))
+		m.add_theme_constant_override("margin_bottom", int(6 * JuiceeEditorUtil.EDSCALE))
+		m.add_theme_constant_override("margin_left", int(6 * JuiceeEditorUtil.EDSCALE))
+		m.add_theme_constant_override("margin_right", int(6 * JuiceeEditorUtil.EDSCALE))
+		block.add_child(m)
+		var text_edit := TextEdit.new()
+		text_edit.text = data.properties.get("text", "Comment")
+		text_edit.custom_minimum_size = Vector2(0, 60) * JuiceeEditorUtil.EDSCALE
+		text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+		text_edit.scroll_fit_content_height = true
+		text_edit.text_changed.connect(func() -> void:
+			block.node_data.properties["text"] = text_edit.text
+		)
+		m.add_child(text_edit)
+	elif data.type == "condition":
+		# Fixed 2-port: True (0) / False (1) - no +/− controls.
+		_add_port_row(block, "True")
+		_add_port_row(block, "False")
+	elif out_ports > 1:
+		# Flow nodes with multiple outputs (split/random): one labeled row per port,
+		# then the +/− controls row (which has no port assigned).
+		var port_prefix := "Path " if data.type == "split" else "Option "
+		for i in out_ports:
+			_add_port_row(block, port_prefix + str(i + 1))
+		block._add_port_controls_row(out_ports, color)
+	elif not subtitle_text.is_empty():
+		var sub_wrap := MarginContainer.new()
+		sub_wrap.add_theme_constant_override("margin_top", int(0 * JuiceeEditorUtil.EDSCALE))
+		sub_wrap.add_theme_constant_override("margin_bottom", int(0 * JuiceeEditorUtil.EDSCALE))
+		block.add_child(sub_wrap)
+
+		var sub := Label.new()
+		sub.name = &"_juicee_subtitle"
+		sub.text = subtitle_text
+		sub.modulate = Color(1, 1, 1, 0.62)
+		sub_wrap.add_child(sub)
+
+	# Now the children exist - assign one input/output slot per port row.
+	# Comment nodes have no ports so this loop is a no-op for them.
+	for i in out_ports:
+		var left_on: bool = has_input and i == 0
+		if not left_on and i == 0:
+			# Godot 4.7 queries the input port of EVERY slot (new accessibility pass),
+			# and errors every frame on a right-only slot whose left-port cache is empty
+			# (e.g. the Trigger). Register a transparent left port: present in the cache
+			# (no error spam) but invisible. It's harmless if something connects to it -
+			# the sequence walk always starts AT the Trigger and ignores inbound edges.
+			block.set_slot(i, true, 0, Color(0, 0, 0, 0), true, 0, color)
+		else:
+			block.set_slot(i, left_on, 0, color, true, 0, color)
+
+	block.mouse_entered.connect(block.hovered.emit)
+	block.mouse_exited.connect(block.unhovered.emit)
+
+	return block
+
+## Called by the live debugger when this node's effect fires.
+## Emits a bright flash that decays back to normal within ~350 ms.
+func flash_debug() -> void:
+	# Kill any in-flight flash tween so rapid fires don't compound infinitely.
+	if _debug_flash_tween and _debug_flash_tween.is_valid():
+		_debug_flash_tween.kill()
+	modulate = Color(1, 1, 1, 1)  # reset before tweening
+	_debug_flash_tween = create_tween()
+	_debug_flash_tween.tween_property(self, "modulate", Color(2.4, 2.2, 1.0, 1.0), 0.04)\
+		.set_trans(Tween.TRANS_LINEAR)
+	_debug_flash_tween.tween_property(self, "modulate", rest_modulate, 0.38)\
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+## Show a persistent "active" glow while an effect is running.
+func set_debug_active(active: bool) -> void:
+	if _debug_flash_tween and _debug_flash_tween.is_valid():
+		_debug_flash_tween.kill()
+	if active:
+		modulate = Color(1.5, 1.4, 0.7, 1.0)
+	else:
+		_debug_flash_tween = create_tween()
+		_debug_flash_tween.tween_property(self, "modulate", rest_modulate, 0.3)\
+			.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+var _debug_flash_tween: Tween = null
+
+## Re-reads node_data and refreshes any dynamic subtitle (e.g. Loop's "Repeat × N").
+## Called by the props panel when properties change so the block stays in sync.
+func refresh_subtitle() -> void:
+	var label := find_child("_juicee_subtitle", true, false) as Label
+	if not label:
+		return
+	if node_data.type == "loop":
+		if bool(node_data.properties.get("infinite", false)):
+			label.text = "Repeat × ∞"
+		else:
+			label.text = "Repeat × %d" % int(node_data.properties.get("count", 3))
+	elif node_data.effect:
+		label.text = effect_subtitle(node_data.effect)
+
+## "Object   ·   0.25s": the category and, when it has one, the length. Built here so a block
+## made from scratch and one refreshed after an edit say the same thing.
+static func effect_subtitle(effect: JuiceeEffect) -> String:
+	var script_path: String = (effect.get_script() as Script).resource_path
+	var category := effect.get_category_name()
+	if category.is_empty():
+		category = JuiceeEffectCatalog.EFFECT_CATEGORIES.get(script_path.get_file().get_basename(), "")
+	var text := category if not category.is_empty() else "Effect"
+	var dur := _duration_str(effect)
+	if not dur.is_empty():
+		text += "   ·   " + dur
+	return text
+
+## Adds a +/- control strip at the bottom of the block so the user can
+## grow or shrink the number of output ports interactively.
+func _add_port_controls_row(current_count: int, color: Color) -> void:
+	var row := MarginContainer.new()
+	row.add_theme_constant_override("margin_top", int(6 * JuiceeEditorUtil.EDSCALE))
+	row.add_theme_constant_override("margin_bottom", int(2 * JuiceeEditorUtil.EDSCALE))
+	row.add_theme_constant_override("margin_left", int(6 * JuiceeEditorUtil.EDSCALE))
+	row.add_theme_constant_override("margin_right", int(6 * JuiceeEditorUtil.EDSCALE))
+	add_child(row)
+	# This row index has no port - set_slot is intentionally not called for it.
+
+	var hbox := HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_END
+	hbox.add_theme_constant_override("separation", int(6 * JuiceeEditorUtil.EDSCALE))
+	row.add_child(hbox)
+
+	hbox.add_child(_make_pill_button("−", "Remove the last path", current_count <= MIN_PORTS, color,
+		func() -> void: ports_changed.emit(maxi(MIN_PORTS, current_count - 1))))
+	hbox.add_child(_make_pill_button("+", "Add another path", current_count >= MAX_PORTS, color,
+		func() -> void: ports_changed.emit(mini(MAX_PORTS, current_count + 1))))
+
+func _make_pill_button(text: String, tip: String, disabled: bool, _accent: Color, on_press: Callable) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.flat = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(22, 20) * JuiceeEditorUtil.EDSCALE
+	btn.tooltip_text = tip
+	btn.disabled = disabled
+	btn.pressed.connect(on_press)
+	return btn
+
+static func _add_port_row(block: JuiceeGraphBlock, text: String) -> void:
+	var row := MarginContainer.new()
+	row.add_theme_constant_override("margin_top", int(2 * JuiceeEditorUtil.EDSCALE))
+	row.add_theme_constant_override("margin_bottom", int(2 * JuiceeEditorUtil.EDSCALE))
+	row.add_theme_constant_override("margin_left", int(6 * JuiceeEditorUtil.EDSCALE))
+	row.add_theme_constant_override("margin_right", int(6 * JuiceeEditorUtil.EDSCALE))
+	block.add_child(row)
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(label)
+
+signal preview_requested
+
+func _add_titlebar_preview_button() -> void:
+	var titlebar := get_titlebar_hbox()
+	if not titlebar:
+		return
+	var btn := Button.new()
+	btn.text = "▶"
+	btn.flat = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(22, 20) * JuiceeEditorUtil.EDSCALE
+	btn.tooltip_text = "Preview this effect on the currently edited scene.\n\nNote: full-screen shader effects (Blur, Chromatic, etc.)\npreview at the editor viewport size. Run the project (F5/F6)\nfor true full-screen rendering."
+	btn.pressed.connect(func() -> void: preview_requested.emit())
+	titlebar.add_child(btn)
+
+func _apply_titlebar_icon(path: String) -> void:
+	var tex := JuiceeEditorUtil.addon_icon(path)
+	if not tex:
+		return
+	var titlebar := get_titlebar_hbox()
+	if not titlebar:
+		return
+	titlebar.add_theme_constant_override("separation", int(4 * JuiceeEditorUtil.EDSCALE))
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.custom_minimum_size = Vector2(16, 16) * JuiceeEditorUtil.EDSCALE
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	titlebar.add_child(icon)
+	titlebar.move_child(icon, 0)
+
+func _apply_dimension_tags(dims: Array, category: String = "") -> void:
+	if dims.is_empty():
+		return
+	var titlebar := get_titlebar_hbox()
+	if not titlebar:
+		return
+	for dim in dims:
+		var icon_rect := JuiceeGraphEditor.dimension_tag_icon(dim, category, 20)
+		if icon_rect:
+			titlebar.add_child(icon_rect)
+
+func _apply_theme(c: Color) -> void:
+	# Inherit Godot's editor GraphNode look (matches VisualShader / AnimationTree /
+	# user's chosen editor theme - light, dark, custom) and only tint a 2-px
+	# hairline at the top of the titlebar with our category color. Same trick
+	# Godot itself uses in VisualShader to indicate input/output category.
+	if not Engine.is_editor_hint():
+		return
+	var ed_theme := EditorInterface.get_editor_theme()
+	if not ed_theme:
+		return
+
+	_tint_stylebox(ed_theme, "titlebar", "GraphNode", c)
+	_tint_stylebox(ed_theme, "titlebar_selected", "GraphNode", c)
+
+func _tint_stylebox(ed_theme: Theme, box_name: String, type: String, c: Color) -> void:
+	if not ed_theme.has_stylebox(box_name, type):
+		return
+	var sb := ed_theme.get_stylebox(box_name, type).duplicate() as StyleBoxFlat
+	if not sb:
+		return
+	sb.border_color = c
+	sb.border_width_top = maxi(sb.border_width_top, 2)
+	# Wash the titlebar with a faint category tint so the colour reads behind the
+	# name, not just as a hairline - the graph's echo of the inspector row tint.
+	sb.bg_color = sb.bg_color.lerp(c, 0.18)
+	add_theme_stylebox_override(box_name, sb)
+
+## The effect's length for the block subtitle, from the same function the Inspector uses, so a
+## block and its row always say the same thing. "" when the length is not fixed.
+static func _duration_str(effect: JuiceeEffect) -> String:
+	return JuiceeEditorUtil.play_length_text(effect)
+
+func sync_position() -> void:
+	node_data.graph_position = position_offset / JuiceeEditorUtil.EDSCALE
+	if node_data.effect:
+		node_data.effect.graph_position = node_data.graph_position
+
+## Visually pulses the block to indicate it just started executing.
+## Used by the graph debugger after the effect's pre-delay has elapsed.
+func pulse_highlight() -> void:
+	_clear_delay_bar()
+	var tween := create_tween()
+	tween.tween_property(self, "modulate", Color(1.4, 1.4, 1.4, 1.0), 0.08)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "modulate", rest_modulate, 0.35)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+## Flags that the effect bailed out on a bad setup during a Test run - an amber/red
+## flash held much longer than the fire-pulse above (1.4s vs 0.35s), because a warning
+## needs to actually register, not blink past in the instant the block would otherwise
+## have pulsed for firing normally. The message rides the block's own tooltip while the
+## flash lasts, so hovering explains what happened without opening the Output panel.
+var _warning_flash_tween: Tween = null
+
+func flash_warning(message: String) -> void:
+	if _warning_flash_tween and _warning_flash_tween.is_valid():
+		_warning_flash_tween.kill()
+	tooltip_text = "⚠ " + message
+	modulate = Color(1, 1, 1, 1)
+	_warning_flash_tween = create_tween()
+	_warning_flash_tween.tween_property(self, "modulate", Color(2.2, 0.85, 0.6, 1.0), 0.06)\
+		.set_trans(Tween.TRANS_LINEAR)
+	_warning_flash_tween.tween_property(self, "modulate", rest_modulate, 1.4)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_warning_flash_tween.tween_callback(func() -> void:
+		if is_instance_valid(self):
+			tooltip_text = "")
+
+# Filled portion of the delay-progress bar (0..1). Drawn directly via _draw()
+# so it can't grow the block or push other content around.
+var _delay_progress: float = 0.0
+
+func _draw() -> void:
+	if _delay_progress <= 0.0:
+		return
+	# Bar inset from rounded corners and sitting just above the bottom edge.
+	const BAR_HEIGHT := 3.0
+	const SIDE_INSET := 4.0
+	const BOTTOM_INSET := 5.0
+	var max_w := maxf(0.0, size.x - SIDE_INSET * 2.0)
+	var w := max_w * clampf(_delay_progress, 0.0, 1.0)
+	var rect := Rect2(SIDE_INSET, size.y - BAR_HEIGHT - BOTTOM_INSET, w, BAR_HEIGHT)
+	# Faint background track behind the fill so the user sees the full extent.
+	draw_rect(Rect2(SIDE_INSET, rect.position.y, max_w, BAR_HEIGHT),
+		Color(1, 1, 1, 0.08), true)
+	draw_rect(rect, _delay_bar_color(), true)
+
+## Animates a fill bar at the bottom of the block over `duration` seconds -
+## shown while an effect is in its pre-delay wait.
+func show_delay_progress(duration: float) -> void:
+	_clear_delay_bar()
+	if duration <= 0.0:
+		return
+
+	# Faint glow hint that "something is waiting".
+	modulate = Color(1.15, 1.15, 1.15, 1.0)
+	var tween := create_tween()
+	tween.tween_method(_set_delay_progress, 0.0, 1.0, duration)\
+		.set_trans(Tween.TRANS_LINEAR)
+	tween.tween_callback(_clear_delay_bar)
+
+func _set_delay_progress(v: float) -> void:
+	_delay_progress = v
+	queue_redraw()
+
+func _clear_delay_bar() -> void:
+	if _delay_progress != 0.0:
+		_delay_progress = 0.0
+		queue_redraw()
+
+func _delay_bar_color() -> Color:
+	# Match the category - fall back to a warm amber.
+	if node_data and node_data.effect:
+		var c := node_data.effect.get_category_color()
+		c.a = 0.85
+		return c
+	if node_data and JuiceeGraphBlock.BUILTIN_META.has(node_data.type):
+		var c2: Color = JuiceeGraphBlock.BUILTIN_META[node_data.type]["color"]
+		c2.a = 0.85
+		return c2
+	return Color(1.0, 0.78, 0.30, 0.85)
