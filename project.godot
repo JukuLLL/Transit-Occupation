@@ -24,7 +24,8 @@ config/icon="res://icon.svg"
 
 [audio]
 
-buses/default_bus_layout="uid://bo5sbndbhd6g5"
+buses/default_bus_layout=""
+driver/enable_input=true
 
 [autoload]
 
@@ -53,8 +54,10 @@ enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/asset
 [file_customization]
 
 folder_colors={
+"res://global/": "pink",
 "res://maps/": "purple",
 "res://materials/": "teal",
+"res://menus/": "gray",
 "res://nodes/": "yellow",
 "res://nodes/entities/": "orange",
 "res://nodes/props/": "blue",
@@ -126,6 +129,11 @@ grab={
 grav={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":81,"key_label":0,"unicode":113,"location":0,"echo":false,"script":null)
+]
+}
+VC={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":86,"key_label":0,"unicode":118,"location":0,"echo":false,"script":null)
 ]
 }
 

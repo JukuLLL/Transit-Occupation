@@ -1,5 +1,7 @@
 class_name player extends CharacterBody3D
 
+
+@export var health :int=100
 @export var speed := 5.0
 @export var sprint_speed := 10.0
 @export var jump_multiplier:float=1
