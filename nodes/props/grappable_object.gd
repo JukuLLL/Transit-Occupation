@@ -37,14 +37,12 @@ var cooldown = false
 var aimbotting = false
 
 func freeze_check():
-	print("freeze")
 	var is_colliding_with_physics=false
 	for node:Node3D in get_colliding_bodies():
 		if node.is_class("RigidBody3D"):
 			is_colliding_with_physics = true
 	if is_zero_approx(linear_velocity.length() + angular_velocity.length()) and get_contact_count() != 0 and is_colliding_with_physics == false:
 		freeze = true
-		print("frozen")
 	elif freeze == false:
 		freeze = false
 
@@ -115,6 +113,5 @@ func _on_velocity_hit_body_entered(body: Node3D) -> void:
 		var plr:player=body
 		if !plr.monster:
 			hit_targets.append(plr)
-			GDSync.call_func_on(plr.name.to_int(),plr.hit_by_phyics)
-			print("hit")
+			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.hit_by_phyics)
 	pass # Replace with function body.

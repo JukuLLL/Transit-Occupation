@@ -16,8 +16,8 @@ script = ExtResource("2_xi13j")
 
 [node name="Timer" type="Timer" parent="." unique_id=1573892837]
 process_callback = 0
-wait_time = 15.0
 autostart = true
+ignore_time_scale = true
 
 [node name="Node" type="Node" parent="." unique_id=2103800426]
 

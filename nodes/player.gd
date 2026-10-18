@@ -119,6 +119,10 @@ func owner_changed(id:int):
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
+	
+func call_on_other():
+	print("other")
+	print(GDSync.get_sender_id())
 
 func _ready():
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
@@ -128,7 +132,7 @@ func _ready():
 	GDSync.expose_func(change_gravity_state)
 	GDSync.expose_var(self,"gravity_state")
 	GDSync.expose_var(self,"health")
-	GDSync.expose_node(self)
+	
 	grapple_ray = head.grapple_ray
 	if monster:
 		grapple_ray.target_position.z = (25 * grapple_distance) * -1
@@ -137,6 +141,11 @@ func _ready():
 	await get_tree().physics_frame
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	new_speed = speed
+	print(GDSync.get_gdsync_owner(self))
+	GDSync.expose_func(call_on_other)
+	await get_tree().create_timer(5).timeout
+	if monster and GDSync.is_gdsync_owner(self):
+		GDSync.call_func(call_on_other)
 
 func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self): return
