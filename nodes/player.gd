@@ -74,9 +74,12 @@ func owner_changed(id:int):
 	pass
 
 func _ready():
+	GDSync.expose_func(sync_grav_vis)
 	GDSync.expose_func(hit_by_phyics)
+	GDSync.expose_func(hit_by_damager)
 	GDSync.expose_func(change_gravity_state)
 	GDSync.expose_var(self,"gravity_state")
+	GDSync.expose_var(self,"health")
 	grapple_ray = head.grapple_ray
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	if monster:
@@ -148,6 +151,9 @@ func movement(delta):
 	
 	dash_cooldown -= 1
 	dash_cooldown = clampi(dash_cooldown,0,INT32_MAX)
+	
+	if Input.is_action_just_pressed("dash"):
+		dash()
 		
 	if is_on_floor():
 		
@@ -159,8 +165,6 @@ func movement(delta):
 				floor_counter = 0
 		else:
 			velocity.y = 0
-		if Input.is_action_just_pressed("dash"):
-			dash()
 		if floor_counter > max_bhop_inaccuracy - 1:
 			bhop = false
 		if input:
@@ -168,8 +172,8 @@ func movement(delta):
 			velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 40)
 		else:
 			if !bhop:
-				velocity.x -= velocity.x / friction
-				velocity.z -= velocity.z / friction
+				velocity.x -= velocity.x / (friction / 2)
+				velocity.z -= velocity.z / (friction / 2)
 		
 	else:
 		velocity.y -= gravity.y * gravity_state
@@ -217,6 +221,10 @@ func _physics_process(delta):
 	grappling_hook(delta)
 	if monster:
 		ability_check()
+		if Input.is_action_just_pressed("ui_down"):
+			attack()
+		
+	
 	
 	move_and_slide()
 	
@@ -235,6 +243,22 @@ func hit_by_phyics():
 	velocity /= 10
 	head.damage_indicator()
 	head.shake(1)
+	
+func hit_by_damager(damage:int=1):
+	print("hit")
+	velocity /= 2
+	head.damage_indicator()
+	head.shake(0.2)
+	health -= damage
+	GDSync.sync_var(self,"health",true)
+	head.health_bar.value = health
+	
+func attack():
+	for body:Node3D in $Damager.get_overlapping_bodies():
+		if body.is_class("CharacterBody3D"):
+			var plr:player=body
+			print("attack")
+			GDSync.call_func_on(body.name.to_int(),hit_by_damager,25)
 	
 var grapple_spots:Array[grabble_point]
 	
@@ -332,8 +356,7 @@ func gravity_flip():
 	if Input.is_action_just_pressed("grav"):
 		GDSync.emit_signal_remote_all(Network.unfreeze)
 		if $gravity_area/CollisionShape3D.disabled == false:
-			$gravity_area/CollisionShape3D.disabled = true
-			$gravity_area/CollisionShape3D.visible = false
+			GDSync.call_func_all(sync_grav_vis,true,$gravity_area/CollisionShape3D.get_path())
 			for body:Node3D in $gravity_area.get_overlapping_bodies():
 				if body.is_class("CharacterBody3D"):
 					var plr:player=body
@@ -341,8 +364,7 @@ func gravity_flip():
 						GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
 						GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,false)
 		else:
-			$gravity_area/CollisionShape3D.disabled = false
-			$gravity_area/CollisionShape3D.visible = true
+			GDSync.call_func_all(sync_grav_vis,false,$gravity_area/CollisionShape3D.get_path())
 		
 	if !$gravity_area/CollisionShape3D.disabled:
 		for body:Node3D in $gravity_area.get_overlapping_bodies():
@@ -351,6 +373,11 @@ func gravity_flip():
 				if plr.gravity_state == 1:
 					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),change_gravity_state,-1)
 					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
+					
+func sync_grav_vis(on:bool,grav_area_path:NodePath):
+	var shape:CollisionShape3D=get_node(grav_area_path)
+	shape.disabled = !on
+	shape.visible = on
 		
 	
 func change_gravity_state(to:int):
