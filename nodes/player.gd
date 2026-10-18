@@ -38,6 +38,50 @@ var friction = 5
 
 
 
+# B-HOP COMBO
+var bhop_combo := 0
+var best_bhop_combo := 0
+var combo_label: Label
+var combo_tween: Tween
+
+func _create_combo_ui():
+	if combo_label != null: return # owner_changed can fire more than once
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	
+	combo_label = Label.new()
+	combo_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	combo_label.offset_left = -420
+	combo_label.offset_right = -24
+	combo_label.offset_top = 24
+	combo_label.offset_bottom = 80
+	combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	combo_label.add_theme_font_size_override("font_size", 32)
+	combo_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	combo_label.add_theme_constant_override("outline_size", 6)
+	combo_label.visible = false
+	layer.add_child(combo_label)
+
+func set_bhop_combo(value: int):
+	bhop_combo = value
+	best_bhop_combo = max(best_bhop_combo, bhop_combo)
+	if combo_label == null: return
+	
+	if bhop_combo <= 0:
+		combo_label.visible = false
+		return
+	
+	combo_label.visible = true
+	combo_label.text = "Successful B-Hop: x%d" % bhop_combo
+	
+	# Little "pop" every time the combo goes up
+	combo_label.pivot_offset = Vector2(combo_label.size.x, combo_label.size.y * 0.5)
+	if combo_tween: combo_tween.kill()
+	combo_label.scale = Vector2(1.3, 1.3)
+	combo_tween = create_tween()
+	combo_tween.tween_property(combo_label, "scale", Vector2.ONE, 0.15)
+
+
 
 
 var cross_hair_regular_pos:Vector2
@@ -52,6 +96,9 @@ func owner_changed(id:int):
 	if !is_owner:
 		head.queue_free()
 	if is_owner:
+		_create_combo_ui()
+		$OmniLight3D.visible = true
+		first_person_camera.make_current()
 		$OmniLight3D.visible = true
 		first_person_camera.make_current()
 		var screen:Rect2=get_viewport().get_visible_rect()
@@ -153,16 +200,21 @@ func movement(delta):
 		
 		floor_counter += 1
 		if Input.is_action_just_pressed("jump"):
+			var was_chained: bool = bhop
 			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
 			if velocity.length() > 0.2:
 				bhop = true
 				floor_counter = 0
+				if was_chained:
+					set_bhop_combo(bhop_combo +1)
 		else:
 			velocity.y = 0
 		if Input.is_action_just_pressed("dash"):
 			dash()
 		if floor_counter > max_bhop_inaccuracy - 1:
 			bhop = false
+			if bhop_combo != 0:
+				set_bhop_combo(0)
 		if input:
 			velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 40)
 			velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 40)
