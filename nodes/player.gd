@@ -121,14 +121,15 @@ func owner_changed(id:int):
 	pass
 
 func _ready():
+	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	GDSync.expose_func(sync_grav_vis)
 	GDSync.expose_func(hit_by_phyics)
 	GDSync.expose_func(hit_by_damager)
 	GDSync.expose_func(change_gravity_state)
 	GDSync.expose_var(self,"gravity_state")
 	GDSync.expose_var(self,"health")
+	GDSync.expose_node(self)
 	grapple_ray = head.grapple_ray
-	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	if monster:
 		grapple_ray.target_position.z = (25 * grapple_distance) * -1
 	await get_tree().physics_frame
@@ -296,8 +297,10 @@ func hit_by_phyics():
 	head.damage_indicator()
 	head.shake(1)
 	
-func hit_by_damager(damage:int=1):
+func hit_by_damager(damage:int=1,debug:Variant=null):
 	print("hit")
+	if debug:
+		print(str(debug))
 	velocity /= 2
 	head.damage_indicator()
 	head.shake(0.2)
@@ -308,9 +311,11 @@ func hit_by_damager(damage:int=1):
 func attack():
 	for body:Node3D in $Damager.get_overlapping_bodies():
 		if body.is_class("CharacterBody3D"):
+			print_debug(GDSync.get_gdsync_owner(body))
+			print_debug("owner: "+str(GDSync.get_gdsync_owner(body)))
 			var plr:player=body
 			print("attack")
-			GDSync.call_func_on(body.name.to_int(),hit_by_damager,25)
+			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),hit_by_damager,22)
 	
 var grapple_spots:Array[grabble_point]
 	
@@ -349,12 +354,12 @@ func toggle_camera():
 	var third_transform:Vector3=head.to_local(third_person_camera_spot.global_position)
 	
 	if first_person:
-		create_tween().tween_property(first_person_camera,"position",third_transform,1)
+		create_tween().tween_property(first_person_camera,"position",third_transform,0.2)
 		# Don't see our own body in first person
 		player_mesh.visible = true
 	
 	else:
-		create_tween().tween_property(first_person_camera,"position",Vector3.ZERO,1)
+		create_tween().tween_property(first_person_camera,"position",Vector3.ZERO,0.2)
 		# Show body in third person
 		player_mesh.visible = false
 		
@@ -428,8 +433,12 @@ func gravity_flip():
 					
 func sync_grav_vis(on:bool,grav_area_path:NodePath):
 	var shape:CollisionShape3D=get_node(grav_area_path)
-	shape.disabled = !on
-	shape.visible = on
+	if on:
+		shape.disabled = false
+		shape.visible = true
+	else:
+		shape.disabled = true
+		shape.visible = false
 		
 	
 func change_gravity_state(to:int):
