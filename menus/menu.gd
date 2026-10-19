@@ -2,14 +2,21 @@ extends Control
 
 @export var settings_scene:PackedScene
 
-# Called when the node enters the scene tree for the first time.
+@onready var credits_label: Label = $CreditsLabel
+@onready var gold_coins_label: Label = $GoldCoinsLabel
+
+
 func _ready() -> void:
-	
-	#for child:Node in get_children():
-		#if child.get("disabled") != null:
-			#child.disabled = true
 	GDSync.connected.connect(connected)
-	pass # Replace with function body.
+	
+	Currency.credits_changed.connect(_update_credits_label)
+	Currency.gold_coins_changed.connect(_update_gold_coins_label)
+	_update_credits_label(Currency.credits)
+	_update_gold_coins_label(Currency.gold_coins)
+	
+	$AddCredits.pressed.connect(_on_add_credits_pressed)
+	$AddGoldCoins.pressed.connect(_on_add_gold_coins_pressed)
+	
 
 func connected():
 	print("connected")
@@ -53,3 +60,15 @@ func _on_namer_text_changed(new_text: String) -> void:
 func _on_settings_pressed() -> void:
 	add_child(settings_scene.instantiate())
 	pass # Replace with function body.
+
+func _update_credits_label(amount: int) -> void:
+	credits_label.text = "Credits: %d" % amount
+	
+func _update_gold_coins_label(amount: int) -> void:
+	gold_coins_label.text = "Gold Coins: %d" % amount
+	
+func _on_add_credits_pressed() -> void:
+	Currency.add_credits(100)
+	
+func _on_add_gold_coins_pressed() -> void:
+	Currency.add_gold_coins(10)
