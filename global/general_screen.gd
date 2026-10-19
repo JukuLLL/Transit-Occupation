@@ -18,4 +18,5 @@ func fade(wait_time:float=0.5):
 	
 func chaos(on:bool):
 	$status/chaos.visible = on
+	$status/JuiceePlayer.play()
 	

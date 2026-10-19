@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="JuiceeSequence" format=3 uid="uid://b7xvuv3vrrh8o"]
+
+[ext_resource type="Script" uid="uid://8xfugwudyp6n" path="res://addons/juicee/effects/juicee_effect.gd" id="1_mclnu"]
+[ext_resource type="Script" uid="uid://d2kca5dl5c5l5" path="res://addons/juicee/effects/glitch_effect.gd" id="2_8bqtw"]
+[ext_resource type="Script" uid="uid://v73jghomx6uw" path="res://addons/juicee/core/juicee_sequence.gd" id="3_yxko3"]
+
+[sub_resource type="Resource" id="Resource_j7a1g"]
+script = ExtResource("2_8bqtw")
+intensity = 1.0
+duration = 1.1
+chance = 0.99
+intensity_min = 0.99
+intensity_max = 0.99
+graph_position = Vector2(474.021, 123.94344)
+
+[resource]
+script = ExtResource("3_yxko3")
+effects = Array[ExtResource("1_mclnu")]([SubResource("Resource_j7a1g")])
+graph_connections = PackedStringArray("trigger_16917:0:glitch_effect_4413355:0")

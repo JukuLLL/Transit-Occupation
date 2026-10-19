@@ -123,15 +123,20 @@ func owner_changed(id:int):
 func call_on_other():
 	print("other")
 	print(GDSync.get_sender_id())
+	
+func _init() -> void:
+	dash_cooldown = 0
 
 func _ready():
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
-	GDSync.expose_func(sync_grav_vis)
-	GDSync.expose_func(hit_by_phyics)
-	GDSync.expose_func(hit_by_damager)
-	GDSync.expose_func(change_gravity_state)
-	GDSync.expose_var(self,"gravity_state")
-	GDSync.expose_var(self,"health")
+	GDSync.expose_node(self)
+	#GDSync.set_gdsync_owner(self,name.to_int())
+	#GDSync.expose_func(sync_grav_vis)
+	#GDSync.expose_func(_hit_by_phyics)
+	#GDSync.expose_func(hit_by_damager)
+	#GDSync.expose_func(change_gravity_state)
+	#GDSync.expose_var(self,"gravity_state")
+	#GDSync.expose_var(self,"health")
 	
 	grapple_ray = head.grapple_ray
 	if monster:
@@ -205,9 +210,9 @@ func movement(delta):
 	else:
 		if !bhop:
 			new_speed = lerpf(new_speed,speed,delta * 5)
-	
-	dash_cooldown -= 1
-	dash_cooldown = clampi(dash_cooldown,0,INT32_MAX)
+	if dash_cooldown != null:
+		dash_cooldown -= 1
+		dash_cooldown = clampi(dash_cooldown,0,INT32_MAX)
 	
 	if Input.is_action_just_pressed("dash"):
 		dash()
@@ -301,30 +306,31 @@ func is_in_range(pos:Vector2) -> bool:
 	else:
 		return false
 
-func hit_by_phyics():
+func _hit_by_phyics():
 	velocity /= 10
-	head.damage_indicator()
-	head.shake(1)
+	if head:
+		head.damage_indicator()
+		head.shake(1)
 	
 func hit_by_damager(damage:int=1,debug:Variant=null):
 	print("hit")
 	if debug:
 		print(str(debug))
 	velocity /= 2
-	head.damage_indicator()
-	head.shake(0.2)
 	health -= damage
 	GDSync.sync_var(self,"health",true)
-	head.update_health(health)
+	if head:
+		head.damage_indicator()
+		head.shake(0.2)
+		head.update_health(health)
 	
 func attack():
 	for body:Node3D in $Damager.get_overlapping_bodies():
 		if body.is_class("CharacterBody3D"):
-			print_debug(GDSync.get_gdsync_owner(body))
 			print_debug("owner: "+str(GDSync.get_gdsync_owner(body)))
 			var plr:player=body
 			print("attack")
-			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),hit_by_damager,22)
+			GDSync.call_func_all(plr.hit_by_damager,5)
 	
 var grapple_spots:Array[grabble_point]
 	
@@ -420,25 +426,30 @@ func fling_object():
 			
 func gravity_flip():
 	if Input.is_action_just_pressed("grav"):
+		print("grav 1")
 		GDSync.emit_signal_remote_all(Network.unfreeze)
-		if $gravity_area/CollisionShape3D.disabled == false:
+		if $gravity_area/CollisionShape3D.disabled == true:
+			print("grav 2")
 			GDSync.call_func_all(sync_grav_vis,true,$gravity_area/CollisionShape3D.get_path())
-			for body:Node3D in $gravity_area.get_overlapping_bodies():
-				if body.is_class("CharacterBody3D"):
-					var plr:player=body
-					if plr.gravity_state == 1:
-						GDSync.call_func_on(plr.name.to_int(),change_gravity_state,1)
-						GDSync.call_func_on(plr.name.to_int(),GeneralScreen.chaos,false)
+			await get_tree().physics_frame
+			print($gravity_area.get_overlapping_bodies())
+			var plr_array:Array=Network.plr_node_finder($gravity_area.get_overlapping_bodies())
+			await get_tree().physics_frame
+			print(plr_array)
+			for plr:player in plr_array:
+				if plr.gravity_state == 1:
+					print(GDSync.get_gdsync_owner(plr))
+					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.change_gravity_state,1)
+					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
 		else:
 			GDSync.call_func_all(sync_grav_vis,false,$gravity_area/CollisionShape3D.get_path())
 		
 	if !$gravity_area/CollisionShape3D.disabled:
-		for body:Node3D in $gravity_area.get_overlapping_bodies():
-			if body.is_class("CharacterBody3D"):
-				var plr:player=body
-				if plr.gravity_state == 1:
-					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),change_gravity_state,-1)
-					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
+		var plr_array:Array=Network.plr_node_finder($gravity_area.get_overlapping_bodies())
+		for plr:player in plr_array:
+			if plr.gravity_state == 1:
+				GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.change_gravity_state,-1)
+				GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
 					
 func sync_grav_vis(on:bool,grav_area_path:NodePath):
 	var shape:CollisionShape3D=get_node(grav_area_path)
@@ -464,10 +475,10 @@ func change_gravity_state(to:int):
 
 
 func _on_gravity_area_body_exited(body: Node3D) -> void:
-	if body.is_class("CharacterBody3D"):
+	if Network.name_is_player(body.name.to_int()):
 		var plr:player=body
 		if plr.gravity_state == -1:
-			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),change_gravity_state,1)
+			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.change_gravity_state,1)
 			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,false)
 	pass # Replace with function body.
 

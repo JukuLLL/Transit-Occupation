@@ -14,6 +14,21 @@ var forced = ""
 
 signal unfreeze
 
+func plr_node_finder(node_array:Array) -> Array:
+	var plr_array:Array
+	for body:Node3D in node_array:
+		for client:int in GDSync.lobby_get_all_clients():
+			if body.name.to_int() == client:
+				plr_array.append(body)
+	return plr_array
+		
+func name_is_player(id:int) -> bool:
+	for plr_id in GDSync.lobby_get_all_clients():
+		if id == plr_id:
+			return true
+	return false
+		
+		
 func _ready() -> void:
 	AudioServer.set_input_device_active(true)
 	GDSync.expose_signal(unfreeze)

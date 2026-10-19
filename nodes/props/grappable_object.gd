@@ -113,5 +113,5 @@ func _on_velocity_hit_body_entered(body: Node3D) -> void:
 		var plr:player=body
 		if !plr.monster:
 			hit_targets.append(plr)
-			GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.hit_by_phyics)
+			GDSync.call_func_all(plr._hit_by_phyics)
 	pass # Replace with function body.

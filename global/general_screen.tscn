@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://c05ypy0avldhd" path="res://global/general_screen.gd" id="1_qbauc"]
 [ext_resource type="Shader" uid="uid://d0p715iv1071u" path="res://shaders/chaos.gdshader" id="2_2lvwe"]
+[ext_resource type="Script" uid="uid://dmtb8hlmmqlvt" path="res://addons/juicee/core/juicee_player.gd" id="3_yrtlf"]
+[ext_resource type="Resource" uid="uid://b7xvuv3vrrh8o" path="res://shaders/sequences/glitch.tres" id="4_21el0"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_2payr"]
 
@@ -146,7 +148,6 @@ texture = SubResource("CanvasTexture_2payr")
 layer = 3
 
 [node name="chaos" type="TextureRect" parent="status" unique_id=142318810]
-visible = false
 self_modulate = Color(0, 0, 0, 1)
 material = SubResource("ShaderMaterial_63jv6")
 anchors_preset = 15
@@ -156,3 +157,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = SubResource("CanvasTexture_w7wxr")
+
+[node name="JuiceePlayer" type="Node" parent="status" unique_id=1946356236]
+script = ExtResource("3_yrtlf")
+sequence = ExtResource("4_21el0")
+metadata/_custom_type_script = "uid://dmtb8hlmmqlvt"
