@@ -72,3 +72,8 @@ func _on_add_credits_pressed() -> void:
 	
 func _on_add_gold_coins_pressed() -> void:
 	Currency.add_gold_coins(10)
+
+
+func _on_clear_pressed() -> void:
+	Currency.delete_data()
+	pass # Replace with function body.
