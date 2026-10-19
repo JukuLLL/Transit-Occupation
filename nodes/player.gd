@@ -315,7 +315,7 @@ func hit_by_damager(damage:int=1,debug:Variant=null):
 	head.shake(0.2)
 	health -= damage
 	GDSync.sync_var(self,"health",true)
-	head.health_bar.value = health
+	head.update_health(health)
 	
 func attack():
 	for body:Node3D in $Damager.get_overlapping_bodies():

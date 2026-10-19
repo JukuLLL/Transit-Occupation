@@ -10,6 +10,11 @@ class_name head extends Node3D
 @export_category("UI")
 @export var crosshair:AnimatedSprite2D
 @export var health_bar:TextureProgressBar
+@export var health_label:Label
+
+func update_health(value:int):
+	health_bar.value = value
+	health_label.text = "%d" % value
 
 func shake(intensity:float=1):
 	Juicee.shake_camera_3d(first_person_camera,intensity,0.2)
@@ -17,6 +22,9 @@ func shake(intensity:float=1):
 func _ready() -> void:
 	$VC/VoiceChat.set_input_device(AudioServer.input_device)
 	GDSync.set_gdsync_owner($VC/VoiceChat,GDSync.get_gdsync_owner(plr))
+	update_health(plr.health)
+	health_label.position = Vector2(0, health_bar.size.y +4)
+	health_label.size.x = health_bar.size.x
 	
 func _input(event: InputEvent) -> void:
 	if Input.is_action_pressed("VC"):
