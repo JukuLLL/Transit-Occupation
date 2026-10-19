@@ -146,6 +146,7 @@ VC={
 [layer_names]
 
 3d_render/layer_10="plr"
+3d_physics/layer_30="interact"
 3d_physics/layer_31="fling"
 3d_physics/layer_32="grapple_block"
 

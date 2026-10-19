@@ -1,5 +1,6 @@
 class_name player extends CharacterBody3D
 
+var latest_damage_source:String="NULL"
 
 @export var health :int=100
 @export var speed := 5.0
@@ -291,7 +292,7 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("ui_down"):
 			attack()
 		
-	
+	interact_check()
 	
 	move_and_slide()
 	
@@ -312,25 +313,23 @@ func _hit_by_phyics():
 		head.damage_indicator()
 		head.shake(1)
 	
-func hit_by_damager(damage:int=1,debug:Variant=null):
+func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector3.ZERO,debug:Variant=null):
 	print("hit")
+	latest_damage_source = damage_cause
 	if debug:
 		print(str(debug))
 	velocity /= 2
+	if force:
+		velocity += force
 	health -= damage
 	GDSync.sync_var(self,"health",true)
 	if head:
 		head.damage_indicator()
-		head.shake(0.2)
+		head.shake(0.01 * (damage / 5))
 		head.update_health(health)
 	
 func attack():
-	for body:Node3D in $Damager.get_overlapping_bodies():
-		if body.is_class("CharacterBody3D"):
-			print_debug("owner: "+str(GDSync.get_gdsync_owner(body)))
-			var plr:player=body
-			print("attack")
-			GDSync.call_func_all(plr.hit_by_damager,5)
+	$Damager._damage()
 	
 var grapple_spots:Array[grabble_point]
 	
@@ -352,7 +351,7 @@ func grappling_hook(delta:float):
 			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
 				closest = spot
 		set_grapple_target(closest.global_position)
-		var mouse_side:float = Input.get_axis("left_click","right_click")
+		var mouse_side:float = Input.get_axis("right_click","right_click")
 		if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 			var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
 			velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
@@ -377,6 +376,32 @@ func toggle_camera():
 		create_tween().tween_property(first_person_camera,"position",Vector3.ZERO,0.2)
 		# Show body in third person
 		player_mesh.visible = false
+		
+var last_interactable:interactable
+		
+func interact_check():
+	var ray:RayCast3D=head.interact_ray
+	var collider:Node3D=ray.get_collider()
+	var interactable_object:interactable
+	if ray.is_colliding():
+		collider=ray.get_collider()
+		if collider.has_method("interact"):
+			interactable_object=collider
+			last_interactable = interactable_object
+			head.allow_interact(last_interactable.KEY,true)
+	if Input.is_action_pressed("left_click"):
+		if collider != null:
+			if collider.has_method("interact"):
+				interactable_object.interact()
+	elif Input.is_action_just_released("left_click") or !ray.is_colliding() or collider != last_interactable:
+		var key:String
+		if last_interactable != null:
+			last_interactable.lose_focus()
+			key = last_interactable.KEY
+		else:
+			key = ""
+		head.allow_interact(key,false)
+		pass
 		
 
 func ability_check():
