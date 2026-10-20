@@ -15,7 +15,7 @@ func set_damager_cause(to:String):
 func _damage():
 	var force:Vector3
 	for body:Node3D in get_overlapping_bodies():
-		if Network.name_is_player(body.name.to_int()):
+		if body is player and GDSync.is_gdsync_owner(body):
 			var plr:player=body
 			if use_force:
 				force = global_position.direction_to(plr.global_position)
@@ -23,4 +23,6 @@ func _damage():
 				force *= force_mult
 			print("attack")
 			GDSync.call_func_all(plr.hit_by_damager,damage_amount,cause_of_damage,force)
+			
+				
 		

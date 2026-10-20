@@ -1,6 +1,5 @@
-class_name DamageBlock extends Area3D
+class_name TimedDamager extends Damager
 
-@export var damage:int = 15
 @export var interval:float = 1.0
 
 var timers:Dictionary = {}
@@ -14,7 +13,7 @@ func _physics_process(delta: float) -> void:
 			timers[body] = timers.get(body, interval) + delta
 			if timers[body] >= interval:
 				timers[body] = 0.0
-				body.hit_by_damager(damage, "Damage Block")
+				_damage()
 	
 	# Forget players who stepped off the block
 	for body in timers.keys():
