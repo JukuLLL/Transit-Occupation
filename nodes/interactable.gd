@@ -4,7 +4,11 @@ class_name interactable extends Area3D
 
 @export var hold:bool=false
 
+@export var toggle:bool=false
+
 signal interacting
+
+signal interacting_toggle(toggle:bool)
 
 signal interacting_held
 
@@ -13,6 +17,8 @@ signal interest_lost
 var hold_frames = 0
 
 var focused = false
+
+var toggle_state=false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -36,7 +42,12 @@ func interact():
 		hold_frames = 2
 	elif !focused:
 		focused = true
-		interacting.emit()
+		if toggle:
+			interacting_toggle.emit(!toggle_state)
+			toggle_state = !toggle_state
+		else:
+			interacting.emit()
+		
 		
 func lose_focus():
 	if focused:
