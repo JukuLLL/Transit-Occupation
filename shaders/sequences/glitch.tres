@@ -16,4 +16,4 @@ graph_position = Vector2(474.021, 123.94344)
 [resource]
 script = ExtResource("3_yxko3")
 effects = Array[ExtResource("1_mclnu")]([SubResource("Resource_j7a1g")])
-graph_connections = PackedStringArray("trigger_16917:0:glitch_effect_4413355:0")
+graph_connections = PackedStringArray()

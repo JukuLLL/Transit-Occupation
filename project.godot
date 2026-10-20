@@ -59,10 +59,12 @@ enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/Godot
 [file_customization]
 
 folder_colors={
+"res://Sounds/": "gray",
 "res://global/": "pink",
 "res://maps/": "purple",
 "res://materials/": "teal",
 "res://menus/": "gray",
+"res://models/": "red",
 "res://nodes/": "yellow",
 "res://nodes/entities/": "orange",
 "res://nodes/props/": "blue",
