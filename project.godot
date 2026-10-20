@@ -14,13 +14,13 @@ version="1.0.2"
 protectedMode=false
 uniqueUsername=true
 scriptValidation=true
-csharp=false
+csharp=true
 
 [application]
 
 config/name="Transit Occupation"
 run/main_scene="uid://cra81vsj0nib3"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 run/max_fps=60
 config/icon="res://icon.svg"
 
@@ -37,6 +37,7 @@ Juicee="*uid://b36fwfvmmv0xc"
 Node3d="*uid://b6jd4befqesp7"
 GDSync="*uid://cgo4kiocg4a4a"
 Currency="*uid://d684bpfy1t4l"
+GDSyncSharp="*res://addons/GD-Sync/GDSync.cs"
 
 [display]
 
@@ -53,7 +54,7 @@ project/assembly_name="Transit Occupation"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/juicee/plugin.cfg")
+enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GodotTogether/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/juicee/plugin.cfg")
 
 [file_customization]
 
