@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://577iweaqe7"]
+
+[ext_resource type="Script" uid="uid://lb3qny231bsd" path="res://nodes/damage_block.gd" id="1_jt32n"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jtu8q"]
+albedo_color = Color(0.8235294, 0.07058824, 0.07058824, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tlhgx"]
+material = SubResource("StandardMaterial3D_jtu8q")
+size = Vector3(2, 1, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tlhgx"]
+size = Vector3(2, 1, 2)
+
+[node name="DamageBlock" type="Area3D" unique_id=657613035]
+script = ExtResource("1_jt32n")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=267661729]
+mesh = SubResource("BoxMesh_tlhgx")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1001258391]
+shape = SubResource("BoxShape3D_tlhgx")
