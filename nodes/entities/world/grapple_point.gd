@@ -1,8 +1,11 @@
 class_name grabble_point extends StaticBody3D
 
 @export var distance:float=25
+
+signal grabbled
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	GDSync.expose_signal(grabbled)
 	pass # Replace with function body.
 
 func disable(on:bool=false):

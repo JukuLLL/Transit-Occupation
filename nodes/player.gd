@@ -354,6 +354,8 @@ func grappling_hook(delta:float):
 		var mouse= Input.is_action_pressed("right_click")
 		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 			var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
+			if !monster:
+				GDSync.emit_signal_remote_all(closest.grabbled)
 			velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
 		elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
 			#grapple_ray.rotation = Vector3.ZERO
