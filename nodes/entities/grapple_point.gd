@@ -5,6 +5,11 @@ class_name grabble_point extends StaticBody3D
 func _ready() -> void:
 	pass # Replace with function body.
 
+func disable(on:bool=false):
+	if on:
+		process_mode =Node.PROCESS_MODE_INHERIT
+	else:
+		process_mode =Node.PROCESS_MODE_DISABLED
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:

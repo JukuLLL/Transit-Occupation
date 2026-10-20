@@ -351,8 +351,8 @@ func grappling_hook(delta:float):
 			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
 				closest = spot
 		set_grapple_target(closest.global_position)
-		var mouse_side:float = Input.get_axis("right_click","right_click")
-		if mouse_side and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
+		var mouse= Input.is_action_pressed("right_click")
+		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 			var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
 			velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
 		elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
