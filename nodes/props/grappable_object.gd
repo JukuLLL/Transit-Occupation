@@ -7,6 +7,10 @@ var pull_pos:Vector3
 
 @export var sound_physics:physics_sounds
 
+@export var explodes:bool=false
+@export var explode_sound:AudioStream
+var exploded = false
+
 var being_pulled = false
 
 var pull_kill_timer:Timer
@@ -54,7 +58,7 @@ func kill():
 	pass
 
 func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,plr_path:NodePath,target_path:NodePath):
-	if being_pulled:
+	if being_pulled or exploded:
 		return
 	freeze_timer.paused = true
 	freeze = false
@@ -106,13 +110,32 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 	plr.remove_collision_exception_with(self)
 	hit_targets.clear()
 	
-	
 var hit_targets = []
+
+func explode():
+	exploded = true
+	var damage_area:Damager=Damager.new()
+	var collision:CollisionShape3D=CollisionShape3D.new()
+	collision.shape = SphereShape3D.new()
+	collision.shape.radius = 13
+	damage_area.cause_of_damage = "Explosion"
+	damage_area.force_mult = 45
+	damage_area.damage_amount = 15
+	damage_area.use_force = true
+	add_child(damage_area)
+	damage_area.add_child(collision)
+	damage_area._damage()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	damage_area.queue_free()
+	await  get_tree().create_timer(0.5).timeout
+	queue_free()
 
 func _on_velocity_hit_body_entered(body: Node3D) -> void:
 	if body.is_class("CharacterBody3D") and abs(linear_velocity).length() > 7 and !hit_targets.has(body):
 		var plr:player=body
 		if !plr.monster:
 			hit_targets.append(plr)
-			GDSync.call_func_all(plr._hit_by_phyics)
+			GDSync.call_func_on(plr.name.to_int(),plr._hit_by_phyics)
 	pass # Replace with function body.

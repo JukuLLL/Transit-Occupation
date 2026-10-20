@@ -18,7 +18,7 @@ var latest_damage_source:String="NULL"
 @export var monster:bool=false
 
 @export var filter:PackedScene
-@onready var head = $Head
+@onready var plr_head = $Head
 @onready var crosshair = $Head.crosshair
 @onready var first_person_camera:Camera3D = $Head.first_person_camera
 @onready var third_person_camera_spot = $Head.third_person_camera
@@ -103,7 +103,7 @@ func owner_changed(id:int):
 	print("owner_changed")
 	var is_owner:bool=GDSync.is_gdsync_owner(self)
 	if !is_owner:
-		head.queue_free()
+		plr_head.queue_free()
 	if is_owner:
 		_create_combo_ui()
 		$OmniLight3D.visible = true
@@ -123,7 +123,7 @@ func owner_changed(id:int):
 			monster = true
 			add_child(filter.instantiate())
 			grapple_ray.set_collision_mask_value(32,false)
-			head.enable_monster()
+			plr_head.enable_monster()
 		else:
 			monster = false
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
@@ -137,7 +137,7 @@ func _ready():
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	GDSync.expose_node(self)
 	
-	grapple_ray = head.grapple_ray
+	grapple_ray = plr_head.grapple_ray
 	if monster:
 		grapple_ray.target_position.z = (25 * grapple_distance) * -1
 	await get_tree().physics_frame
@@ -164,11 +164,11 @@ func _unhandled_input(event):
 		rotation.y += (-event.relative.x * mouse_sensitivity) * gravity_state
 		
 		# Look up/down
-		head.rotation.x += (-event.relative.y * mouse_sensitivity)
+		plr_head.rotation.x += (-event.relative.y * mouse_sensitivity)
 		
 		# Prevent the camera from flipping upside down
-		head.rotation.x = clamp(
-			head.rotation.x,
+		plr_head.rotation.x = clamp(
+			plr_head.rotation.x,
 			deg_to_rad(-80),
 			deg_to_rad(80)
 		)
@@ -184,7 +184,7 @@ func _unhandled_input(event):
 
 func toggle_camera():
 	first_person = not first_person
-	var third_transform:Vector3=head.to_local(third_person_camera_spot.global_position)
+	var third_transform:Vector3=plr_head.to_local(third_person_camera_spot.global_position)
 	
 	if first_person:
 		create_tween().tween_property(first_person_camera,"position",third_transform,0.2)
@@ -297,7 +297,7 @@ func _physics_process(delta):
 	grappling_hook(delta)
 	if monster:
 		ability_check()
-		if Input.is_action_just_pressed("ui_down"):
+		if Input.is_action_just_pressed("left_click"):
 			attack()
 		
 	interact_check()
@@ -309,9 +309,9 @@ func _physics_process(delta):
 
 func _hit_by_phyics():
 	velocity /= 10
-	if head:
-		head.damage_indicator()
-		head.shake(1)
+	if plr_head:
+		plr_head.damage_indicator()
+		plr_head.shake(1)
 	
 func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector3.ZERO,debug:Variant=null):
 	print("hit")
@@ -323,10 +323,10 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 		velocity += force
 	health -= damage
 	GDSync.sync_var(self,"health",true)
-	if head:
-		head.damage_indicator()
-		head.shake(0.01 * (damage / 5))
-		head.update_health(health)
+	if plr_head:
+		plr_head.damage_indicator()
+		plr_head.shake(0.01 * (damage / 5))
+		plr_head.update_health(health)
 #endregion
 	
 #region grapple
@@ -380,7 +380,7 @@ func grappling_hook(delta:float):
 var last_interactable:interactable
 		
 func interact_check():
-	var ray:RayCast3D=head.interact_ray
+	var ray:RayCast3D=plr_head.interact_ray
 	var collider:Node3D=ray.get_collider()
 	var interactable_object:interactable
 	if ray.is_colliding():
@@ -388,7 +388,7 @@ func interact_check():
 		if collider.has_method("interact"):
 			interactable_object=collider
 			last_interactable = interactable_object
-			head.allow_interact(last_interactable.KEY,true)
+			plr_head.allow_interact(last_interactable.KEY,true)
 	if Input.is_action_pressed("left_click"):
 		if collider != null:
 			if collider.has_method("interact"):
@@ -400,7 +400,7 @@ func interact_check():
 			key = last_interactable.KEY
 		else:
 			key = ""
-		head.allow_interact(key,false)
+		plr_head.allow_interact(key,false)
 		pass
 #endregion
 		
@@ -422,7 +422,7 @@ var fling_target:flingable_object
 		
 func fling_object():
 	if !monster: return
-	var ray:RayCast3D=head.monster_grab_ray
+	var ray:RayCast3D=plr_head.monster_grab_ray
 	
 	if grab_held:
 		if !fling_target.cooldown:
@@ -533,6 +533,7 @@ func set_health_dev(hp:String):
 	print("hp to " + hp)
 	health = hp.to_int()
 	GDSync.sync_var(self,"health",true)
-	head.update_health(hp.to_int())
+	if plr_head:
+		plr_head.update_health(hp.to_int())
 	
 #endregion

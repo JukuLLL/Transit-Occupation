@@ -1,6 +1,6 @@
 class_name physics_sounds extends Node
 
-var parent_rigid_body:RigidBody3D
+var parent_rigid_body:flingable_object
 
 
 @export var sound_list_high_velocity:Array[AudioStream]
@@ -26,11 +26,29 @@ var velocity_cooldown = 0
 
 var last_velocity:float
 
+func spawn_sound(sound:AudioStream):
+	var audio:SynchronizedAudioStreamPlayer3D=SynchronizedAudioStreamPlayer3D.new()
+	audio.bus = bus
+	audio.stream = sound
+	audio.volume_db = 0.1
+	audio.pitch_scale = randf_range(0.95,1.02)
+	audio.panning_strength = 2
+	audio.max_polyphony = 10
+	audio.max_db = 1
+	get_tree().current_scene.add_child(audio)
+	spawned_sound.append(audio)
+	audio.play_synced()
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
+	if parent_rigid_body.exploded:return
 	if parent_rigid_body:
 		if parent_rigid_body.get_contact_count() > 0:
-			if last_velocity > sound_velocity and sound_cooldown < 1 and !sound_list_high_velocity.is_empty():
+			if parent_rigid_body.explodes and last_velocity > (sound_velocity * 1.4) and !parent_rigid_body.exploded:
+				parent_rigid_body.exploded = true
+				GDSync.call_func_all(parent_rigid_body.explode)
+				spawn_sound(parent_rigid_body.explode_sound)
+			elif last_velocity > sound_velocity and sound_cooldown < 1 and !sound_list_high_velocity.is_empty():
 				sound_cooldown = 4
 				print("physic")
 				var audio:SynchronizedAudioStreamPlayer3D=SynchronizedAudioStreamPlayer3D.new()

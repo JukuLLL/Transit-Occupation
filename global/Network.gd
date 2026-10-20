@@ -21,6 +21,7 @@ func plr_node_finder(node_array:Array) -> Array:
 			if body.name.to_int() == client:
 				plr_array.append(body)
 	return plr_array
+	
 		
 func name_is_player(id:int) -> bool:
 	for plr_id in GDSync.lobby_get_all_clients():
@@ -34,7 +35,7 @@ func _ready() -> void:
 	GDSync.expose_signal(unfreeze)
 	GDSync.lobby_joined.connect(joined)
 	GDSync.lobby_received.connect(lobby_recived)
-	GDSync.lobby_created.connect(lobby_create)
+	GDSync.lobby_created.connect(lobby_created)
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
 	pass # Replace with function body.
@@ -72,6 +73,7 @@ func create_lobby(local:bool=false):
 		Network.hosting = false
 		GDSync.lobby_create("ABCD")
 		GDSync.lobby_join("ABCD")
+		GDSync.set_host(GDSync.get_client_id())
 		if local:
 			if forced == "MONSTER":
 				GDSync.player_set_data("TEAM","MONSTER")
@@ -82,7 +84,16 @@ func create_lobby(local:bool=false):
 
 	
 
-func lobby_create(lobby_name:String):
+func lobby_created(lobby_name:String):
+	GDSync.lobby_join(lobby_name)
+	#GDSync.set_host(GDSync.get_client_id())
+	if false == true:
+		if forced == "MONSTER":
+			GDSync.player_set_data("TEAM","MONSTER")
+			Network.monster_id = GDSync.get_client_id()
+		else:
+			GDSync.player_set_data("TEAM","PLAYER")
+			Network.monster_id = 0
 	print(lobby_name)
 	
 func lobby_creation_failed(lobby_name : String, error : int):

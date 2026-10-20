@@ -4,10 +4,7 @@ var maps:Array=["uid://cket7yaadcvm3"]
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	GDSync.expose_func(change_level)
-	GDSync.expose_func(set_side_data)
-	GDSync.expose_func(set_side)
-	GDSync.expose_func(set_monster_id)
+	GDSync.expose_node(self)
 	GDSync.client_joined.connect(_join)
 	GDSync.client_left.connect(_leave)
 	await get_tree().create_timer(1).timeout
@@ -54,12 +51,15 @@ func set_side():
 				return
 			if client == monster_id:
 				GDSync.call_func_on(client,set_side_data,true)
+				print("SET SIDE M")
 			else:
 				GDSync.call_func_on(client,set_side_data,false)
+				print("SET SIDE P")
 				
 func set_side_data(monster:bool):
 	print(monster)
 	print("is_monster")
+	print("SET SIDE")
 	if monster:
 		GDSync.player_set_data("TEAM","MONSTER")
 		GDSync.call_func_all(set_monster_id,GDSync.get_client_id())

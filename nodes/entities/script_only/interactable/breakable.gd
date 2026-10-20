@@ -11,6 +11,8 @@ signal on_break
 
 signal on_damage
 
+var broken = false
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	GDSync.expose_signal(on_break)
@@ -21,10 +23,13 @@ func _ready() -> void:
 	
 	
 func enter(body:Node3D):
+	if broken:return
 	if body is player and GDSync.is_gdsync_owner(body):
 		var plr:player=body
 		if abs(plr.get_real_velocity().length()) > velocity_to_damage:
 			if health <= 0:
+				broken = true
+				Juicee.shake_camera(get_viewport().get_camera_3d(),3,0.2,10)
 				if synced:
 					GDSync.emit_signal_remote_all(on_break)
 				else:
