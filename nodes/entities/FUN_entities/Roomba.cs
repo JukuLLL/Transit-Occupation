@@ -6,6 +6,7 @@ public partial class Roomba : CharacterBody3D
 {
 	public const float Speed = 1.0f;
 
+
 	public float location_delay = 0.0f;
 
 	[Export]
@@ -14,9 +15,6 @@ public partial class Roomba : CharacterBody3D
 
 	public override void _PhysicsProcess(double delta)
 	{
-
-		Vector3 velocity = Velocity;
-
 
 		location_delay -= 0.01f;
 
@@ -39,21 +37,20 @@ public partial class Roomba : CharacterBody3D
 
 		// Add the gravity.
 
-		velocity = dir * Speed;
+		Velocity = dir * Speed;
 
 
 		if (!IsOnFloor())
 		{
-			velocity += GetGravity() * (float)delta;
+			Velocity += GetGravity() * (float)delta;
 		}
 
 		if  (nav.IsNavigationFinished())
 		{
-			velocity = new Vector3(0,0,0);
+			Velocity = new Vector3(0,0,0);
 		}
 
 
-		Velocity = velocity;
 		MoveAndSlide();
 	}
 }
