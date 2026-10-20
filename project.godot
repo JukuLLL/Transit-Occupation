@@ -38,6 +38,7 @@ Node3d="*uid://b6jd4befqesp7"
 GDSync="*uid://cgo4kiocg4a4a"
 Currency="*uid://d684bpfy1t4l"
 GDSyncSharp="*res://addons/GD-Sync/GDSync.cs"
+Console="*uid://ouiu5xh1cs8n"
 
 [display]
 
@@ -54,7 +55,7 @@ project/assembly_name="Transit Occupation"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/juicee/plugin.cfg")
+enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/console/plugin.cfg", "res://addons/juicee/plugin.cfg")
 
 [file_customization]
 

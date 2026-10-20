@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node3d/crate.svg")
 class_name flingable_object extends RigidBody3D
 
 var target_fling_pos:Vector3

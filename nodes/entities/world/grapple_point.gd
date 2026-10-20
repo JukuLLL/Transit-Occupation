@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node3d/link.svg")
 class_name grabble_point extends StaticBody3D
 
 @export var distance:float=25

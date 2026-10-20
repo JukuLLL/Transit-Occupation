@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node3d/list_ordered.svg")
 class_name plr_list extends Node3D
 
 @export var base_player:PackedScene

@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node3d/heart_broken.svg")
 class_name Damager extends Area3D
 
 @export var use_force:bool=false

@@ -1,5 +1,6 @@
 class_name player extends CharacterBody3D
 
+#region Variables
 var latest_damage_source:String="NULL"
 
 @export var health :int=100
@@ -16,28 +17,41 @@ var latest_damage_source:String="NULL"
 
 @export var monster:bool=false
 
+@export var filter:PackedScene
 @onready var head = $Head
 @onready var crosshair = $Head.crosshair
 @onready var first_person_camera:Camera3D = $Head.first_person_camera
 @onready var third_person_camera_spot = $Head.third_person_camera
 @onready var player_mesh = $MeshInstance3D
 
-var first_person := true
-
 # DASH
 @export var dash_speed = 10
 @export var dash_cooldown = 60
 
+var first_person := true
+
+
+
+
 # JUMP
+@export var gravity :Vector3= Vector3(0,0.4,0)
 var bhop = false
 var floor_counter = 0
 var jump_velocity := 7.0
-@export var gravity :Vector3= Vector3(0,0.4,0)
 var new_speed = 5.0
 var new_velocity = Vector3.ZERO
 var friction = 5
 
+var cross_hair_regular_pos:Vector2
+var grapple_area:Rect2
+var gravity_state = 1
 
+var last_movement:float=0
+
+#endregion
+
+
+#region Bhop_combo
 
 # B-HOP COMBO
 var bhop_combo := 0
@@ -81,16 +95,10 @@ func set_bhop_combo(value: int):
 	combo_label.scale = Vector2(1.3, 1.3)
 	combo_tween = create_tween()
 	combo_tween.tween_property(combo_label, "scale", Vector2.ONE, 0.15)
+#endregion
 
 
-
-
-var cross_hair_regular_pos:Vector2
-var grapple_area:Rect2
-var gravity_state = 1
-
-@export var filter:PackedScene
-
+#region Initalization
 func owner_changed(id:int):
 	print("owner_changed")
 	var is_owner:bool=GDSync.is_gdsync_owner(self)
@@ -121,23 +129,13 @@ func owner_changed(id:int):
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
 	
-func call_on_other():
-	print("other")
-	print(GDSync.get_sender_id())
-	
 func _init() -> void:
 	dash_cooldown = 0
+	_init_dev()
 
 func _ready():
 	GDSync.connect_gdsync_owner_changed(self,owner_changed)
 	GDSync.expose_node(self)
-	#GDSync.set_gdsync_owner(self,name.to_int())
-	#GDSync.expose_func(sync_grav_vis)
-	#GDSync.expose_func(_hit_by_phyics)
-	#GDSync.expose_func(hit_by_damager)
-	#GDSync.expose_func(change_gravity_state)
-	#GDSync.expose_var(self,"gravity_state")
-	#GDSync.expose_var(self,"health")
 	
 	grapple_ray = head.grapple_ray
 	if monster:
@@ -147,12 +145,18 @@ func _ready():
 	await get_tree().physics_frame
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	new_speed = speed
-	print(GDSync.get_gdsync_owner(self))
-	GDSync.expose_func(call_on_other)
-	await get_tree().create_timer(5).timeout
-	if monster and GDSync.is_gdsync_owner(self):
-		GDSync.call_func(call_on_other)
+#endregion
 
+func visibility_to_blind():
+	if velocity.length() > 0:
+		last_movement = 1500
+		$MeshInstance3D.set_layer_mask_value(1,true)
+	elif last_movement < 1:
+		$MeshInstance3D.set_layer_mask_value(1,false)
+	else:
+		last_movement -= 1
+		
+#region movement_and_camera
 func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self): return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -178,16 +182,19 @@ func _unhandled_input(event):
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-var last_movement:float=0
-
-func visibility_to_blind():
-	if velocity.length() > 0:
-		last_movement = 1500
-		$MeshInstance3D.set_layer_mask_value(1,true)
-	elif last_movement < 1:
-		$MeshInstance3D.set_layer_mask_value(1,false)
+func toggle_camera():
+	first_person = not first_person
+	var third_transform:Vector3=head.to_local(third_person_camera_spot.global_position)
+	
+	if first_person:
+		create_tween().tween_property(first_person_camera,"position",third_transform,0.2)
+		# Don't see our own body in first person
+		player_mesh.visible = true
+	
 	else:
-		last_movement -= 1
+		create_tween().tween_property(first_person_camera,"position",Vector3.ZERO,0.2)
+		# Show body in third person
+		player_mesh.visible = false
 		
 func movement(delta):
 	var input := Input.get_vector(
@@ -271,6 +278,7 @@ func dash():
 	velocity += push * dash_speed
 	
 	pass
+#endregion
 
 func _physics_process(delta):
 	if !GDSync.is_gdsync_owner(self): return
@@ -296,16 +304,8 @@ func _physics_process(delta):
 	
 	move_and_slide()
 	
-var grappling_target:Node3D=self
 
-var grapple_pos:Vector3=Vector3.ZERO
-
-func is_in_range(pos:Vector2) -> bool:
-	$Label3.text = str(cross_hair_regular_pos.distance_to(pos))
-	if cross_hair_regular_pos.distance_to(pos) < grapple_sensitivity:
-		return true
-	else:
-		return false
+#region hit_reactions
 
 func _hit_by_phyics():
 	velocity /= 10
@@ -327,9 +327,19 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 		head.damage_indicator()
 		head.shake(0.01 * (damage / 5))
 		head.update_health(health)
+#endregion
 	
-func attack():
-	$Damager._damage()
+#region grapple
+var grappling_target:Node3D=self
+
+var grapple_pos:Vector3=Vector3.ZERO
+
+func is_in_range(pos:Vector2) -> bool:
+	$Label3.text = str(cross_hair_regular_pos.distance_to(pos))
+	if cross_hair_regular_pos.distance_to(pos) < grapple_sensitivity:
+		return true
+	else:
+		return false
 	
 var grapple_spots:Array[grabble_point]
 	
@@ -363,21 +373,9 @@ func grappling_hook(delta:float):
 			crosshair.position = cross_hair_regular_pos
 			crosshair.play("default")
 			pass
+#endregion
 
-
-func toggle_camera():
-	first_person = not first_person
-	var third_transform:Vector3=head.to_local(third_person_camera_spot.global_position)
-	
-	if first_person:
-		create_tween().tween_property(first_person_camera,"position",third_transform,0.2)
-		# Don't see our own body in first person
-		player_mesh.visible = true
-	
-	else:
-		create_tween().tween_property(first_person_camera,"position",Vector3.ZERO,0.2)
-		# Show body in third person
-		player_mesh.visible = false
+#region interacting
 		
 var last_interactable:interactable
 		
@@ -404,12 +402,18 @@ func interact_check():
 			key = ""
 		head.allow_interact(key,false)
 		pass
+#endregion
 		
+#region monster abilities
 
 func ability_check():
 	fling_object()
 	gravity_flip()
 	pass
+	
+
+func attack():
+	$Damager._damage()
 	
 	
 var grab_held = false
@@ -517,3 +521,18 @@ func _on_gravity_area_body_entered(body: Node3D) -> void:
 			grappable.freeze_timer.start()
 			grappable.freeze = false
 	pass # Replace with function body.
+	
+#endregion
+
+#region DEV
+
+func _init_dev():
+	Console.add_command("set_health",set_health_dev,["string"],1,"set health : SYNCED")
+
+func set_health_dev(hp:String):
+	print("hp to " + hp)
+	health = hp.to_int()
+	GDSync.sync_var(self,"health",true)
+	head.update_health(hp.to_int())
+	
+#endregion
