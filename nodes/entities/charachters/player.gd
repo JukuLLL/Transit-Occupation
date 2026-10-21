@@ -3,6 +3,9 @@ class_name player extends CharacterBody3D
 #region Variables
 var latest_damage_source:String="NULL"
 
+@export var ping_lifetime:float = 7.0
+@export var ping_max_distance:float = 300.0
+var current_ping:PingMarker
 @export var health :int=100
 @export var speed := 5.0
 @export var sprint_speed := 10.0
@@ -175,12 +178,41 @@ func _unhandled_input(event):
 	
 	if event.is_action_pressed("toggle_camera"):
 		toggle_camera()
+		
+	if event.is_action_pressed("ping"):
+		do_ping()
+		
 	if Input.is_action_just_pressed("ui_cancel"):
 		await get_tree().process_frame
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			
+func do_ping():
+	var cam:Camera3D = first_person_camera
+	var from:Vector3 = cam.global_position
+	var to:Vector3 = from - cam.global_transform.basis.z * ping_max_distance
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.exclude = [get_rid()]
+	var hit:Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var ping_name:String = str(Network.plr_name)
+	if ping_name == "":
+		ping_name = "Player"
+	GDSync.call_func_all(show_ping, hit.position, ping_name)
+
+func show_ping(world_pos:Vector3, sender_name:String):
+	# One ping per player: a new ping replaces the old one
+	if is_instance_valid(current_ping):
+		current_ping.queue_free()
+	var marker := PingMarker.new()
+	marker.world_pos = world_pos
+	marker.display_name = sender_name
+	marker.lifetime = ping_lifetime
+	add_child(marker)
+	current_ping = marker
 
 func toggle_camera():
 	first_person = not first_person
