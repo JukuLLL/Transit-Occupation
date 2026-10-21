@@ -250,9 +250,12 @@ func movement(delta):
 	else:
 		if !bhop:
 			new_speed = lerpf(new_speed,speed,delta * 5)
+			
 	if dash_cooldown != null:
 		dash_cooldown -= 1
 		dash_cooldown = clampi(dash_cooldown,0,INT32_MAX)
+		if plr_head:
+			plr_head.update_dash(dash_cooldown)
 	
 	if Input.is_action_just_pressed("dash"):
 		dash()

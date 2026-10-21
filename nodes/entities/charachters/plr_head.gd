@@ -13,12 +13,18 @@ class_name head extends Node3D
 @export var health_bar:TextureProgressBar
 @export var health_label:Label
 @export var interact_label:Label
+@export var dash_ring:CooldownRing
 
 
 func update_health(value:int):
 	value = clampi(value,0,INT16_MAX)
 	health_bar.value = value
 	health_label.text = "%d" % value
+	
+func update_dash(cooldown:int, max_cooldown:int = 60):
+	if dash_ring == null:
+		return
+	dash_ring.progress = 1.0 - float(cooldown) / max_cooldown
 	
 func allow_interact(U_KEY:String,visibility:bool=false):
 	interact_label.text = "Press "+ U_KEY +" to use"
