@@ -30,6 +30,10 @@ func _damage():
 					force *= force_mult
 				print("attack")
 				GDSync.call_func_on(plr.name.to_int(),plr.hit_by_damager,damage_amount,cause_of_damage,force)
+	for area:Area3D in get_overlapping_areas():
+		if area is breakable:
+			var brekable_area:breakable=area
+			area.hit_by_damager()
 			
 				
 		

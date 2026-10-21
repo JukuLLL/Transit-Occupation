@@ -182,12 +182,6 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ping"):
 		do_ping()
 		
-	if Input.is_action_just_pressed("ui_cancel"):
-		await get_tree().process_frame
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			
 func do_ping():
 	var cam:Camera3D = first_person_camera
@@ -362,6 +356,24 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 		plr_head.damage_indicator()
 		plr_head.shake(0.01 * (damage / 5))
 		plr_head.update_health(health)
+	
+	if health < 1:
+		GDSync.call_func_all(death)
+		
+func death():
+	if GDSync.is_gdsync_owner(self):
+		var scene:PackedScene=load("res://nodes/entities/charachters/spectator.scn")
+		var cam:FreeLookCamera=scene.instantiate()
+		get_tree().current_scene.add_child(cam)
+		cam.global_position = global_position
+		cam.make_current()
+		pass
+	self.hide()
+	process_mode = Node.PROCESS_MODE_DISABLED
+	set_process_input(false)
+	set_physics_process(false)
+	set_process(false)
+	pass
 #endregion
 	
 #region grapple

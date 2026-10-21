@@ -14,6 +14,14 @@ var forced = ""
 
 signal unfreeze
 
+func _unhandled_input(event: InputEvent) -> void:
+	if Input.is_action_just_pressed("ui_cancel"):
+		await get_tree().process_frame
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
 func plr_node_finder(node_array:Array) -> Array:
 	var plr_array:Array
 	for body:Node3D in node_array:
