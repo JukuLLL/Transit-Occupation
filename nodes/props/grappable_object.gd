@@ -114,6 +114,7 @@ var hit_targets = []
 
 func explode():
 	exploded = true
+	visible = false
 	var damage_area:Damager=Damager.new()
 	var collision:CollisionShape3D=CollisionShape3D.new()
 	collision.shape = SphereShape3D.new()
@@ -124,11 +125,8 @@ func explode():
 	damage_area.use_force = true
 	add_child(damage_area)
 	damage_area.add_child(collision)
+	await get_tree().physics_frame
 	damage_area._damage()
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	damage_area.queue_free()
 	await  get_tree().create_timer(0.5).timeout
 	queue_free()
 
