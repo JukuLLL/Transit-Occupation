@@ -25,6 +25,12 @@ func add_credits(amount: int) -> void:
 func add_gold_coins(amount: int) -> void:
 	gold_coins += amount
 	save_data()
+	
+func delete_data():
+	var cfg := ConfigFile.new()
+	cfg.load(SAVE_PATH)
+	cfg.clear()
+	cfg.save(SAVE_PATH)
 
 func save_data() -> void:
 	var cfg := ConfigFile.new()
