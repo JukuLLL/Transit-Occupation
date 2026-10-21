@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://jowufafkvkmx"
+path="res://.godot/imported/Power Up.wav-6fad8b0d0f47860dbefbb60ed56c2498.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Retro/Power Up.wav"
+dest_files=["res://.godot/imported/Power Up.wav-6fad8b0d0f47860dbefbb60ed56c2498.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

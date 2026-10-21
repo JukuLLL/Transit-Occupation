@@ -1,0 +1,19 @@
+[configuration]
+
+entry_symbol = "line3d_library_init"
+compatibility_minimum = "4.7"
+reloadable = true
+
+[libraries]
+
+windows.debug.x86_64 = "./bin/windows/Line3D.dll"
+windows.release.x86_64 = "./bin/windows/Line3D.dll"
+
+linux.debug.x86_64 = "./bin/linux/libLine3D.so"
+linux.release.x86_64 = "./bin/linux/libLine3D.so"
+
+macos.debug = "./bin/macos/libLine3D.dylib"
+macos.release = "./bin/macos/libLine3D.dylib"
+
+[icons]
+Line3D = "res://addons/line3d/icons/Line3D.svg"

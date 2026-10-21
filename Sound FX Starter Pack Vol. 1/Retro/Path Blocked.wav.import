@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bantq4evl4w0s"
+path="res://.godot/imported/Path Blocked.wav-9474aa2c35a0bfe80fefb42e1abfe573.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Retro/Path Blocked.wav"
+dest_files=["res://.godot/imported/Path Blocked.wav-9474aa2c35a0bfe80fefb42e1abfe573.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

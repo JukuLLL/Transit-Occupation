@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bvd4ihhwm0gti"
+path="res://.godot/imported/Grassy Field Loop.wav-c298e326a8a8ff52c51b45d9c05538ca.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Environment/Grassy Field Loop.wav"
+dest_files=["res://.godot/imported/Grassy Field Loop.wav-c298e326a8a8ff52c51b45d9c05538ca.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

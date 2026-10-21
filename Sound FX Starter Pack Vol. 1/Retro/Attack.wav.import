@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://v16uo7f0t45"
+path="res://.godot/imported/Attack.wav-7a7303647c07638b93cb0acd833c0eb7.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Retro/Attack.wav"
+dest_files=["res://.godot/imported/Attack.wav-7a7303647c07638b93cb0acd833c0eb7.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

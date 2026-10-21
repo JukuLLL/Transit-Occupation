@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bi5duh02bygxq"
+path="res://.godot/imported/Notification.wav-782d342a2df95bb07c10216d4460b054.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/UI & Menus/Notification.wav"
+dest_files=["res://.godot/imported/Notification.wav-782d342a2df95bb07c10216d4460b054.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

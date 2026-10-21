@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://hfnentypwgln"
+path="res://.godot/imported/Arrow Hit.wav-7ef41afdc641aba4b3b3056f69dceaf9.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Medieval/Arrow Hit.wav"
+dest_files=["res://.godot/imported/Arrow Hit.wav-7ef41afdc641aba4b3b3056f69dceaf9.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cwby4e32m5x0u"
+path="res://.godot/imported/Parry.wav-b6cdcdef85862ef3ce86c334c4ac159c.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Medieval/Parry.wav"
+dest_files=["res://.godot/imported/Parry.wav-b6cdcdef85862ef3ce86c334c4ac159c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://11qm1bi4l628"
+path="res://.godot/imported/Welcome.wav-70bd74322cd0997645aa67c0da35f335.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Jingles & Stingers/Welcome.wav"
+dest_files=["res://.godot/imported/Welcome.wav-70bd74322cd0997645aa67c0da35f335.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

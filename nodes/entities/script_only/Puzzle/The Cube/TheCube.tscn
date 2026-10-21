@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://c7fyqkmwwi0a2"]
+
+[ext_resource type="Script" uid="uid://by6a0ivcqrvwt" path="res://nodes/entities/script_only/Puzzle/The Cube/the_cube.gd" id="1_drbyp"]
+[ext_resource type="Script" uid="uid://xe2loijthdk6" path="res://addons/GD-Sync/Scripts/Types/NodeInstantiator.gd" id="2_m4na5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m4na5"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_atkw5"]
+material = SubResource("StandardMaterial3D_m4na5")
+
+[node name="TheCube" type="Node3D" unique_id=1403445802 node_paths=PackedStringArray("Output_location", "Item_create")]
+script = ExtResource("1_drbyp")
+Output_location = NodePath("output")
+Item_create = NodePath("ItemMaker")
+
+[node name="ItemMaker" type="Node" parent="." unique_id=1895466562]
+script = ExtResource("2_m4na5")
+target_location = NodePath("")
+scene = null
+replicate_on_join = true
+sync_starting_changes = true
+excluded_properties = PackedStringArray()
+metadata/_custom_type_script = "uid://xe2loijthdk6"
+
+[node name="output" type="Marker3D" parent="." unique_id=1594647574]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=442260001]
+mesh = SubResource("BoxMesh_atkw5")

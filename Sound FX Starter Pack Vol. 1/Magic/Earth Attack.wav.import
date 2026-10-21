@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cxf4vbi0f4eyy"
+path="res://.godot/imported/Earth Attack.wav-e02d2042addb45059de4769883caf8c5.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Magic/Earth Attack.wav"
+dest_files=["res://.godot/imported/Earth Attack.wav-e02d2042addb45059de4769883caf8c5.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -32,6 +32,10 @@ func _ready() -> void:
 	interacting.connect(func(): print("interact_one"))
 	interacting_held.connect(func(): print("interact_held"))
 	interest_lost.connect(func(): print("interact_lost"))
+	set_collision_layer_value(1,false)
+	set_collision_layer_value(2,true)
+	set_collision_layer_value(30,true)
+	collision_mask = collision_layer
 	pass # Replace with function body.
 	
 func _physics_process(delta: float) -> void:

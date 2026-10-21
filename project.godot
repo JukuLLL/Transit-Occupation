@@ -34,11 +34,12 @@ driver/enable_input=true
 Network="*uid://bokr77itbsfk0"
 GeneralScreen="*uid://d373hflq8a3jj"
 Juicee="*uid://b36fwfvmmv0xc"
-Node3d="uid://b6jd4befqesp7"
 GDSync="*uid://cgo4kiocg4a4a"
 Currency="*uid://d684bpfy1t4l"
 GDSyncSharp="*res://addons/GD-Sync/GDSync.cs"
 Console="*uid://ouiu5xh1cs8n"
+MusicManager="*uid://bwkwr6lejp5fs"
+SIgnalDebug="*uid://cjba3kjg28ixi"
 
 [display]
 

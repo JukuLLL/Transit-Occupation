@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://mi828j1td88w"
+path="res://.godot/imported/Rolling Thunder.wav-d4f8869ab998aa327af4d5e06841badd.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Community Requests/Rolling Thunder.wav"
+dest_files=["res://.godot/imported/Rolling Thunder.wav-d4f8869ab998aa327af4d5e06841badd.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

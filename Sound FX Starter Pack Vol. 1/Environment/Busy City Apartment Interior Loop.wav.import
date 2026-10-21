@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dtn4ssv83q5ot"
+path="res://.godot/imported/Busy City Apartment Interior Loop.wav-135a6db0cf9060459108d27aa7502fff.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Environment/Busy City Apartment Interior Loop.wav"
+dest_files=["res://.godot/imported/Busy City Apartment Interior Loop.wav-135a6db0cf9060459108d27aa7502fff.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

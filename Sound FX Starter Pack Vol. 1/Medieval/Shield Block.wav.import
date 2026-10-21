@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://byywdw6l4yupl"
+path="res://.godot/imported/Shield Block.wav-445641e318a00efd965842ba0945ea83.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Medieval/Shield Block.wav"
+dest_files=["res://.godot/imported/Shield Block.wav-445641e318a00efd965842ba0945ea83.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bn5j2yp2jqq2k"
+path="res://.godot/imported/Firework.wav-546d171a1a97efe81c5f560afb2d21fd.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Community Requests/Firework.wav"
+dest_files=["res://.godot/imported/Firework.wav-546d171a1a97efe81c5f560afb2d21fd.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://df62oc2kh52f4"
+path="res://.godot/imported/Biobot Move.wav-bbff3ec5fc7cd9b32a02071c01f4dcaf.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Sci-Fi/Biobot Move.wav"
+dest_files=["res://.godot/imported/Biobot Move.wav-bbff3ec5fc7cd9b32a02071c01f4dcaf.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

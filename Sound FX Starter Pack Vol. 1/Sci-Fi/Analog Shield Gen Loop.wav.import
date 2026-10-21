@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://6wcy4vpmgv3f"
+path="res://.godot/imported/Analog Shield Gen Loop.wav-a3a88e7ed7f4207ef1c17d3725fbdebe.sample"
+
+[deps]
+
+source_file="res://Sound FX Starter Pack Vol. 1/Sci-Fi/Analog Shield Gen Loop.wav"
+dest_files=["res://.godot/imported/Analog Shield Gen Loop.wav-a3a88e7ed7f4207ef1c17d3725fbdebe.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
