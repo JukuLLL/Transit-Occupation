@@ -3,11 +3,18 @@ class_name grabble_point extends StaticBody3D
 
 @export var distance:float=25
 
+@export var allow_pull:bool=true
+
 signal grabbled
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	GDSync.expose_signal(grabbled)
 	pass # Replace with function body.
+	
+func grabbed():
+	$MeshInstance3D.mesh.material.emission = Color.GREEN
+	await get_tree().create_timer(2).timeout
+	$MeshInstance3D.mesh.material.emission = Color.WHITE
 
 func disable(on:bool=false):
 	if on:

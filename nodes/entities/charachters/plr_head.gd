@@ -21,6 +21,10 @@ func update_health(value:int):
 	health_bar.value = value
 	health_label.text = "%d" % value
 	
+func update_lives(value:int):
+	pass
+	#I HAVE NO LIVES COUNTER
+	
 func update_dash(cooldown:int, max_cooldown:int = 60):
 	if dash_ring == null:
 		return

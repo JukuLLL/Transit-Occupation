@@ -3,10 +3,15 @@ class_name player extends CharacterBody3D
 #region Variables
 var latest_damage_source:String="NULL"
 
+var downed:bool = false
+var picked_up:bool = false
+var downed_interact:interactable
+
 @export var ping_lifetime:float = 7.0
 @export var ping_max_distance:float = 300.0
 var current_ping:PingMarker
 @export var health :int=100
+@export var lives :int=3
 @export var speed := 5.0
 @export var sprint_speed := 10.0
 @export var jump_multiplier:float=1
@@ -19,6 +24,7 @@ var current_ping:PingMarker
 @export var grapple_distance:float=1.0
 
 @export var monster:bool=false
+@export var monster_hold_spot:Marker3D
 
 @export var filter:PackedScene
 @onready var plr_head = $Head
@@ -331,8 +337,45 @@ func _physics_process(delta):
 		
 	interact_check()
 	
+	downed_check()
+	
 	move_and_slide()
 	
+	
+#region Downed
+func interact(plr_path:NodePath):
+	var plr:player=get_node(plr_path)
+	if downed:
+		if plr.monster:
+			if !picked_up:
+				pickup(plr_path)
+		else:
+			if !picked_up:
+				revive()
+	pass
+	
+func revive():
+	health = 100
+	plr_head.update_health(health)
+	downed = false
+	pass
+	
+func pickup(monster_path:NodePath):
+	var monster:player= get_node(monster_path)
+	if !picked_up:
+		GDSync.call_func_on(name.to_int(),sync_pick_up,true)
+		monster_hold_spot = monster.monster_hold_spot
+	else:
+		GDSync.call_func_on(name.to_int(),sync_pick_up,false)
+	pass
+	
+func sync_pick_up(on:bool):
+	picked_up = on
+	GDSync.sync_var(self,"picked_up")
+
+
+	
+#endregion
 
 #region hit_reactions
 
@@ -343,6 +386,7 @@ func _hit_by_phyics():
 		plr_head.shake(1)
 	
 func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector3.ZERO,debug:Variant=null):
+	if downed: return
 	print("hit")
 	latest_damage_source = damage_cause
 	if debug:
@@ -358,7 +402,36 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 		plr_head.update_health(health)
 	
 	if health < 1:
-		GDSync.call_func_all(death)
+		if lives < 1:
+			GDSync.call_func_all(death)
+		else:
+			GDSync.call_func_all(down_player)
+		
+func down_player():
+	downed = true
+	lives -= 1
+	velocity = Vector3.ZERO
+	if downed_interact == null:
+		downed_interact = interactable.new()
+	add_child(downed_interact)
+	var shp := SphereShape3D.new()
+	shp.radius = 1
+	var col := CollisionShape3D.new()
+	col.shape = shp
+	downed_interact.add_child(col)
+	downed_interact.interacting.connect(interact)
+	pass
+	
+func downed_check():
+	if downed:
+		var ray :RayCast3D= plr_head.interact_ray
+		ray.enabled = false
+		var down:Vector3=Vector3(0,velocity.y,0)
+		velocity = down
+		if picked_up:
+			velocity = Vector3.ZERO
+			if monster_hold_spot != null:
+				global_position = monster_hold_spot.global_position
 		
 func death():
 	if GDSync.is_gdsync_owner(self):
@@ -410,10 +483,13 @@ func grappling_hook(delta:float):
 		set_grapple_target(closest.global_position)
 		var mouse= Input.is_action_pressed("right_click")
 		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
-			var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
+			if !closest.allow_pull:
+				pass
+			else:
+				var direction:Vector3=global_position.direction_to(grapple_ray.get_collision_point())
+				velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
 			if !monster:
-				GDSync.emit_signal_remote_all(closest.grabbled)
-			velocity += direction * (grapple_force * (global_position.distance_to(grapple_ray.get_collision_point()) / 7)) - Vector3(0,0.1,0)
+					GDSync.emit_signal_remote_all(closest.grabbled)
 		elif !grappling_target.is_in_group("grapple") or !is_in_range(first_person_camera.unproject_position(grapple_pos)):
 			#grapple_ray.rotation = Vector3.ZERO
 			in_grapple = false
@@ -439,7 +515,7 @@ func interact_check():
 	if Input.is_action_pressed("left_click"):
 		if collider != null:
 			if collider.has_method("interact"):
-				interactable_object.interact()
+				interactable_object.interact(self)
 	elif Input.is_action_just_released("left_click") or !ray.is_colliding() or collider != last_interactable:
 		var key:String
 		if last_interactable != null:

@@ -7,11 +7,11 @@ class_name interactable extends Area3D
 
 @export var toggle:bool=false
 
-signal interacting
+signal interacting(player_node_path:NodePath)
 
-signal interacting_toggle(toggle:bool)
+signal interacting_toggle(toggle:bool,player_node_path:NodePath)
 
-signal interacting_held
+signal interacting_held(player_node_path:NodePath)
 
 signal interest_lost
 
@@ -50,7 +50,7 @@ func _physics_process(delta: float) -> void:
 	
 
 
-func interact():
+func interact(plr_node:player):
 	if hold:
 		focused = true
 		hold_frames = 2
@@ -58,16 +58,16 @@ func interact():
 		focused = true
 		if toggle:
 			if synced:
-				GDSync.emit_signal_remote_all(interacting_toggle,!toggle_state)
+				GDSync.emit_signal_remote_all(interacting_toggle,!toggle_state,plr_node.get_path())
 				toggle_state = !toggle_state
 			else:
-				interacting_toggle.emit(!toggle_state)
+				interacting_toggle.emit(!toggle_state,plr_node.get_path())
 				toggle_state = !toggle_state
 		else:
 			if synced:
-				GDSync.emit_signal_remote_all(interacting)
+				GDSync.emit_signal_remote_all(interacting,plr_node.get_path())
 			else:
-				interacting.emit()
+				interacting.emit(plr_node)
 		
 		
 func lose_focus():
