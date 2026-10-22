@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bcnpaj3g5wgb1"
-path="res://.godot/imported/- Thank You.png-8894678b868ae65a43859cc9abee2140.ctex"
+path="res://.godot/imported/- Thank You.png-f1373ed9658019cbed8eb5b42c737899.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sound FX Starter Pack Vol. 1/- Thank You.png"
-dest_files=["res://.godot/imported/- Thank You.png-8894678b868ae65a43859cc9abee2140.ctex"]
+source_file="res://- Thank You.png"
+dest_files=["res://.godot/imported/- Thank You.png-f1373ed9658019cbed8eb5b42c737899.ctex"]
 
 [params]
 

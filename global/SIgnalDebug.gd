@@ -14,15 +14,16 @@ func _make_signals_visible():
 	if !visible:
 		visible = true
 		update_visualizations()
-		await get_tree().physics_frame
-		await get_tree().physics_frame
-		_update_line_positions()
 	else:
 		visible = false
 		for key in _active_lines.keys():
 			if is_instance_valid(_active_lines[key]):
 				_active_lines[key].queue_free()
 				_active_lines.erase(key)
+				
+				
+func _process(delta: float) -> void:
+	_update_line_positions()
 		
 func update_visualizations() -> void:
 	var current_connections: Array = []
@@ -86,7 +87,6 @@ func _update_line_positions() -> void:
 		var path_node = _active_lines[key]
 		
 		if is_instance_valid(sender) and is_instance_valid(receiver) and is_instance_valid(path_node):
-			if sender.global_position == receiver.global_position: return
 			_set_line_points(path_node, sender.global_position, receiver.global_position)
 
 func _set_line_points(path_node: Path3D, start_pos: Vector3, end_pos: Vector3) -> void:
