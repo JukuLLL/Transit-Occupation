@@ -67,7 +67,7 @@ func interact(plr_node:player):
 			if synced:
 				GDSync.emit_signal_remote_all(interacting,plr_node.get_path())
 			else:
-				interacting.emit(plr_node)
+				interacting.emit(plr_node.get_path())
 		
 		
 func lose_focus():

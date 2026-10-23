@@ -157,6 +157,8 @@ func _ready():
 #endregion
 
 func visibility_to_blind():
+	$MeshInstance3D.set_layer_mask_value(1,true)
+	return
 	if velocity.length() > 0:
 		last_movement = 1500
 		$MeshInstance3D.set_layer_mask_value(1,true)
@@ -316,30 +318,38 @@ func dash():
 #endregion
 
 func _physics_process(delta):
-	if !GDSync.is_gdsync_owner(self): return
-	visibility_to_blind()
-		
-	$Label.text = str(velocity.length())
-	$Label2.text = str(grappling_target)
-	
-	movement(delta)
-	
-	if grapple_pos != null:
-		grapple_ray.look_at(grapple_pos)
-	if grapple_ray.is_colliding():
-		grappling_target = grapple_ray.get_collider()
-	
-	grappling_hook(delta)
-	if monster:
-		ability_check()
-		if Input.is_action_just_pressed("left_click"):
-			attack()
-		
-	interact_check()
-	
+
 	downed_check()
-	
-	move_and_slide()
+
+#region others
+	if !GDSync.is_gdsync_owner(self):
+		pass
+#endregion
+		
+#region client
+	else:
+		visibility_to_blind()
+			
+		$Label.text = str(velocity.length())
+		$Label2.text = str(grappling_target)
+		
+		movement(delta)
+		
+		if grapple_pos != null:
+			grapple_ray.look_at(grapple_pos)
+		if grapple_ray.is_colliding():
+			grappling_target = grapple_ray.get_collider()
+		
+		grappling_hook(delta)
+		if monster:
+			ability_check()
+			if Input.is_action_just_pressed("left_click"):
+				attack()
+			
+		interact_check()
+		
+		move_and_slide()
+#endregion
 	
 	
 #region Downed
@@ -347,31 +357,39 @@ func interact(plr_path:NodePath):
 	var plr:player=get_node(plr_path)
 	if downed:
 		if plr.monster:
-			if !picked_up:
-				pickup(plr_path)
+			GDSync.call_func_on(GDSync.get_gdsync_owner(self),pickup,plr_path)
 		else:
 			if !picked_up:
-				revive()
+				GDSync.call_func_on(self.name.to_int(),revive)
 	pass
 	
 func revive():
-	health = 100
-	plr_head.update_health(health)
-	downed = false
+	if GDSync.is_gdsync_owner(self):
+		health = 100
+		plr_head.update_health(health)
+		downed = false
 	pass
 	
 func pickup(monster_path:NodePath):
 	var monster:player= get_node(monster_path)
+	print("picked " + str(picked_up))
 	if !picked_up:
-		GDSync.call_func_on(name.to_int(),sync_pick_up,true)
+		GDSync.call_func_all(sync_pick_up,true)
 		monster_hold_spot = monster.monster_hold_spot
 	else:
-		GDSync.call_func_on(name.to_int(),sync_pick_up,false)
+		GDSync.call_func_all(sync_pick_up,false)
 	pass
 	
 func sync_pick_up(on:bool):
+	print("picked_up")
 	picked_up = on
 	GDSync.sync_var(self,"picked_up")
+	for plr:player in get_tree().get_nodes_in_group("plr"):
+		if plr != self:
+			if on:
+				self.add_collision_exception_with(plr)
+			else:
+				self.remove_collision_exception_with(plr)
 
 
 	
@@ -414,6 +432,7 @@ func down_player():
 	if downed_interact == null:
 		downed_interact = interactable.new()
 	add_child(downed_interact)
+	downed_interact.synced = false
 	var shp := SphereShape3D.new()
 	shp.radius = 1
 	var col := CollisionShape3D.new()
@@ -424,14 +443,21 @@ func down_player():
 	
 func downed_check():
 	if downed:
-		var ray :RayCast3D= plr_head.interact_ray
-		ray.enabled = false
-		var down:Vector3=Vector3(0,velocity.y,0)
-		velocity = down
+		if GDSync.is_gdsync_owner(self):
+			var ray :RayCast3D= plr_head.interact_ray
+			ray.enabled = false
+			var down:Vector3=Vector3(0,velocity.y,0)
+			velocity = down
 		if picked_up:
 			velocity = Vector3.ZERO
-			if monster_hold_spot != null:
+			if monster_hold_spot != null and picked_up:
+				print(picked_up)
 				global_position = monster_hold_spot.global_position
+				#GDSync.sync_var_on(Network.monster_id,self,"global_position")
+	else:
+		if downed_interact != null:
+			downed_interact.queue_free()
+
 		
 func death():
 	if GDSync.is_gdsync_owner(self):
