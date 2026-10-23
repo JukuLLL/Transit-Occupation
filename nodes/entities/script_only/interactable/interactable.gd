@@ -29,9 +29,6 @@ func _ready() -> void:
 	GDSync.expose_signal(interacting_held)
 	GDSync.expose_signal(interest_lost)
 	GDSync.expose_signal(interacting_toggle)
-	interacting.connect(func(): print("interact_one"))
-	interacting_held.connect(func(): print("interact_held"))
-	interest_lost.connect(func(): print("interact_lost"))
 	set_collision_layer_value(1,false)
 	set_collision_layer_value(2,true)
 	set_collision_layer_value(30,true)
@@ -41,16 +38,18 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if hold_frames > 1:
 		hold_frames -= 1
-		if synced:
-			GDSync.emit_signal_remote_all(interacting_held)
-		else:
-			interacting_held.emit()
+		if local_plr_node:
+			if synced:
+				GDSync.emit_signal_remote_all(interacting_held,local_plr_node.get_path())
+			else:
+				interacting_held.emit(local_plr_node.get_path())
 		if hold_frames < 1:
 			lose_focus()
 	
-
+var local_plr_node:player
 
 func interact(plr_node:player):
+	local_plr_node = plr_node
 	if hold:
 		focused = true
 		hold_frames = 2

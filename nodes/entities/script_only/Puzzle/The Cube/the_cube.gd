@@ -35,7 +35,6 @@ func get_all_puzzles():
 func finish_cube():
 	print("DONE")
 	GDSync.emit_signal_remote_all(cube_finished)
-	$MeshInstance3D.set("mesh/material/albedo_color",Color.GREEN)
 	
 func finish_puzzle():
 	finished_puzzle_count += 1
