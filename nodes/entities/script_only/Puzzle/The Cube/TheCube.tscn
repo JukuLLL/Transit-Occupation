@@ -2,11 +2,116 @@
 
 [ext_resource type="Script" uid="uid://by6a0ivcqrvwt" path="res://nodes/entities/script_only/Puzzle/The Cube/the_cube.gd" id="1_drbyp"]
 [ext_resource type="Script" uid="uid://xe2loijthdk6" path="res://addons/GD-Sync/Scripts/Types/NodeInstantiator.gd" id="2_m4na5"]
+[ext_resource type="PackedScene" uid="uid://dkl0dsi0nkruo" path="res://models/world/Puzzles/PuzzleCube.glb" id="3_4i3qg"]
+[ext_resource type="Texture2D" uid="uid://uuqi3sgjqmc" path="res://textures/puzzle/alien_metal.jpg" id="4_cd6ls"]
+[ext_resource type="ArrayMesh" uid="uid://x8d5on74bpt" path="res://gddraw/meshes/cube_uv_002.res" id="4_khcg2"]
+[ext_resource type="Shader" uid="uid://bgwe5qatspia8" path="res://shaders/TheCubePanel.tres" id="5_khcg2"]
+[ext_resource type="Texture2D" uid="uid://i0bkmixv8w0x" path="res://textures/puzzle/alien_metal_normal.jpg" id="8_b7mo7"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m4na5"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_iyxlp"]
+render_priority = 0
+shader = ExtResource("5_khcg2")
 
-[sub_resource type="BoxMesh" id="BoxMesh_atkw5"]
-material = SubResource("StandardMaterial3D_m4na5")
+[sub_resource type="Gradient" id="Gradient_lhm0i"]
+offsets = PackedFloat32Array(0, 0.38121548, 0.6767956, 0.8674033)
+colors = PackedColorArray(0, 0, 0, 1, 1, 0.15294118, 0, 1, 0, 1, 0, 1, 0, 0.023529412, 1, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_48kh3"]
+noise_type = 3
+frequency = 0.1249
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_qvpg0"]
+noise = SubResource("FastNoiseLite_48kh3")
+color_ramp = SubResource("Gradient_lhm0i")
+in_3d_space = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nlqyx"]
+albedo_texture = ExtResource("4_cd6ls")
+metallic = 0.73
+roughness = 0.32
+normal_scale = 0.38
+normal_texture = ExtResource("8_b7mo7")
+heightmap_enabled = true
+heightmap_scale = 13.117
+heightmap_texture = ExtResource("4_cd6ls")
+detail_enabled = true
+detail_mask = ExtResource("4_cd6ls")
+detail_albedo = SubResource("NoiseTexture2D_qvpg0")
+detail_normal = ExtResource("8_b7mo7")
+uv1_scale = Vector3(2.415, 2.415, 2.415)
+
+[sub_resource type="Shader" id="Shader_q8cff"]
+code = "shader_type spatial;
+render_mode blend_mix, depth_draw_always;
+
+uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap_anisotropic;
+
+group_uniforms Color;
+uniform vec3 color : source_color = vec3(1.0);
+uniform float color_coat : hint_range(0.0, 1.0, 0.01) = 0.0;
+uniform float oilyness : hint_range(0.0, 2.0, 0.01) = 0.1;
+
+group_uniforms Rim;
+uniform float rim_amount : hint_range(0.0, 1.0, 0.01) = 0.8;
+uniform float rim_shape : hint_range(0.1, 6.0, 0.01) = 2.5;
+uniform vec3 rim_color : source_color = vec3(1.0);
+
+group_uniforms Refraction;
+uniform float refraction_strength : hint_range(-1.0, 1.0, 0.01) = 0.5;
+
+group_uniforms Blur;
+uniform float blur_amount: hint_range(0.1, 8.0) = 4.0;
+uniform float roughness_affect : hint_range(0.0, 1.0, 0.01) = 0.0;
+
+group_uniforms Roughness;
+uniform float roughness : hint_range(0.0, 1.0, 0.01) = 0.2;
+uniform sampler2D roughness_texture;
+
+float overlay(float base, float blend){
+	float limit = step(0.5, base);
+	return mix(2.0 * base * blend, 1.0 - 2.0 * (1.0 - base) * (1.0 - blend), limit);
+}
+
+void fragment() {
+	vec2 pixel_size = 1.0 / vec2(textureSize(screen_texture, 0));
+	
+	float fresnel = pow(clamp(1.0 - dot(NORMAL, VIEW),0.0, 1.0), 1.0);
+	vec2 offset = vec2(NORMAL.x, -NORMAL.y) * fresnel;
+	
+	vec2 screen_uv = SCREEN_UV + offset * refraction_strength;
+	
+	float roughness_value = clamp(texture(roughness_texture, UV).r * roughness, 0.01, 1.0);
+	
+	float blur = mix(blur_amount, overlay(blur_amount, 1.0 - roughness_value), roughness_affect);
+	vec3 glass = textureLod(screen_texture, screen_uv, blur).rgb;
+	
+	float coat_amount = pow(1.0 - color_coat, 1.0);
+	
+	ALBEDO = color * mix(vec3(1.0), glass, coat_amount);
+	ALBEDO = mix(ALBEDO, rim_color, pow(fresnel, rim_shape) * rim_amount);
+	
+	ALBEDO -= vec3((sin(NORMAL.xy * 10.0) * 0.5 + 0.5) * (0.1 * oilyness), 0.0);
+	
+	EMISSION = ALBEDO * coat_amount;
+	
+	SPECULAR = 1.0;
+	
+	ROUGHNESS = roughness_value;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wr1w3"]
+render_priority = 0
+shader = SubResource("Shader_q8cff")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/color_coat = 0.0
+shader_parameter/oilyness = 0.83999998122432
+shader_parameter/rim_amount = 0.999999977648
+shader_parameter/rim_shape = 1.2599999755617999
+shader_parameter/rim_color = Color(0, 0, 0, 1)
+shader_parameter/refraction_strength = 0.9999999552959999
+shader_parameter/blur_amount = 5.426000254475119
+shader_parameter/roughness_affect = 0.20999999530608
+shader_parameter/roughness = 0.249999994412
 
 [node name="TheCube" type="Node3D" unique_id=1403445802 node_paths=PackedStringArray("Output_location", "Item_create")]
 script = ExtResource("1_drbyp")
@@ -24,5 +129,14 @@ metadata/_custom_type_script = "uid://xe2loijthdk6"
 
 [node name="output" type="Marker3D" parent="." unique_id=1594647574]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=442260001]
-mesh = SubResource("BoxMesh_atkw5")
+[node name="PuzzleCube" parent="." unique_id=1663174974 instance=ExtResource("3_4i3qg")]
+transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
+
+[node name="Cube" parent="PuzzleCube" index="0" unique_id=1576063217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4459772, -0.5400443, -2.8842266)
+mesh = ExtResource("4_khcg2")
+surface_material_override/0 = SubResource("ShaderMaterial_iyxlp")
+surface_material_override/1 = SubResource("StandardMaterial3D_nlqyx")
+surface_material_override/2 = SubResource("ShaderMaterial_wr1w3")
+
+[editable path="PuzzleCube"]

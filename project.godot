@@ -56,7 +56,7 @@ project/assembly_name="Transit Occupation"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/console/plugin.cfg", "res://addons/juicee/plugin.cfg")
+enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GDDrawPlus/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/console/plugin.cfg", "res://addons/juicee/plugin.cfg", "res://addons/vfx_animaiton_player/plugin.cfg", "res://addons/xesa/ExposeThemProperties/plugin.cfg")
 
 [file_customization]
 
