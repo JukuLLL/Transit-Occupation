@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cbtsah6rx4hcn"
+path="res://.godot/imported/bleach_bypass.glsl-5c302f2606d1e280cde0fd041349081c.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/bleach_bypass/bleach_bypass.glsl"
+dest_files=["res://.godot/imported/bleach_bypass.glsl-5c302f2606d1e280cde0fd041349081c.res"]
+
+[params]
+

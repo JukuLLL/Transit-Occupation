@@ -11,6 +11,8 @@ func _ready() -> void:
 @export var spots: Node3D
 @export var vision: Decal
 @export var progress: Label3D
+@export var range_x:float=0.5
+@export var range_y:float=0.5
 var times:float=0
 
 var current_pos:Vector3
@@ -20,7 +22,7 @@ var lerp_Start:Vector3
 var start_vision_pos:Vector3
 
 func get_pos_in_list() -> Vector3:
-	var marker:Vector3=start_vision_pos + Vector3(0,randf_range(-0.5,0.5),randf_range(-0.5,0.5))
+	var marker:Vector3=start_vision_pos + Vector3(0,randf_range(-range_y,range_y),randf_range(-range_x,range_x))
 	return marker
 
 	pass # Replace with function body.

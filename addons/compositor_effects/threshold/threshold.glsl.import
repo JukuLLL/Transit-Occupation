@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://wfyxs435pqjk"
+path="res://.godot/imported/threshold.glsl-ceadb5daad27008e26f2999a81544fcb.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/threshold/threshold.glsl"
+dest_files=["res://.godot/imported/threshold.glsl-ceadb5daad27008e26f2999a81544fcb.res"]
+
+[params]
+

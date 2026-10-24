@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://ct4tdicdk5pgg"
+path="res://.godot/imported/bloom_apply.glsl-7d4f165070645c82f4609d5cc5381fed.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/unreal_bloom/bloom_apply.glsl"
+dest_files=["res://.godot/imported/bloom_apply.glsl-7d4f165070645c82f4609d5cc5381fed.res"]
+
+[params]
+

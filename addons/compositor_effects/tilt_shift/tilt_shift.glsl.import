@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cvakxc2jmys26"
+path="res://.godot/imported/tilt_shift.glsl-abc69bb740cf9835658fd7522da97b30.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/tilt_shift/tilt_shift.glsl"
+dest_files=["res://.godot/imported/tilt_shift.glsl-abc69bb740cf9835658fd7522da97b30.res"]
+
+[params]
+

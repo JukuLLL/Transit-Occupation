@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bwd7537hb1xkg"
+path="res://.godot/imported/analog_noise.glsl-1f16274f8b7970f1b1e06315478851ed.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/analog_noise/analog_noise.glsl"
+dest_files=["res://.godot/imported/analog_noise.glsl-1f16274f8b7970f1b1e06315478851ed.res"]
+
+[params]
+

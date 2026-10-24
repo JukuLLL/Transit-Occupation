@@ -4,6 +4,8 @@ class_name detector extends Area3D
 
 @export var detect_nmonster:bool=true
 @export var detect_player:bool=true
+@export var detect_area:bool=false
+@export var is_main:bool=false
 
 signal on_detect_enter
 
@@ -16,11 +18,19 @@ func _ready() -> void:
 	GDSync.expose_node(self)
 	GDSync.expose_var(self,"health")
 	body_entered.connect(enter)
+	area_entered.connect(enter_area)
 	body_exited.connect(leave)
 	pass # Replace with function body.
 	
 func hit():
 	pass
+	
+func get_areas() -> Array:
+	return get_overlapping_areas()
+	
+func enter_area(area:Area3D):
+	pass
+	
 	
 func enter(body:Node3D):
 	if body is player and GDSync.is_gdsync_owner(body):

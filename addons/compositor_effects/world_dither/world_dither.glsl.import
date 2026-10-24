@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cj7hugrgigx71"
+path="res://.godot/imported/world_dither.glsl-d7a59b4914e6eb8626ed9b1f1c91f91a.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/world_dither/world_dither.glsl"
+dest_files=["res://.godot/imported/world_dither.glsl-d7a59b4914e6eb8626ed9b1f1c91f91a.res"]
+
+[params]
+

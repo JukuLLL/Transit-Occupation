@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bis6gxlanl7ax"
+path="res://.godot/imported/color_remap.glsl-f16f978f3fa4a49d1e34f50f2417d393.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/color_remap/color_remap.glsl"
+dest_files=["res://.godot/imported/color_remap.glsl-f16f978f3fa4a49d1e34f50f2417d393.res"]
+
+[params]
+

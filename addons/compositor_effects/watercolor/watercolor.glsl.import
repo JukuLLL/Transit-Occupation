@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dudfov1pey4nm"
+path="res://.godot/imported/watercolor.glsl-42970f852ad132cefd74af6d28b8db1e.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/watercolor/watercolor.glsl"
+dest_files=["res://.godot/imported/watercolor.glsl-42970f852ad132cefd74af6d28b8db1e.res"]
+
+[params]
+

@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://b0hys6ic307v7"
+path="res://.godot/imported/caustic_lens_focus.glsl-ce9424ec293a140ce57fd70fe2ee9b97.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/caustic_lens_focus/caustic_lens_focus.glsl"
+dest_files=["res://.godot/imported/caustic_lens_focus.glsl-ce9424ec293a140ce57fd70fe2ee9b97.res"]
+
+[params]
+

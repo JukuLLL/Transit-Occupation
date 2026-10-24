@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bty2cs2sclgwx"
+path="res://.godot/imported/emboss.glsl-2ab93c339d4b2a0029d845b8f4fbe554.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/emboss/emboss.glsl"
+dest_files=["res://.godot/imported/emboss.glsl-2ab93c339d4b2a0029d845b8f4fbe554.res"]
+
+[params]
+

@@ -131,10 +131,12 @@ func owner_changed(id:int):
 		if GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM") == "MONSTER":
 			monster = true
 			add_child(filter.instantiate())
+			first_person_camera.compositor = load("res://shaders/comp/monster_vis.res")
 			grapple_ray.set_collision_mask_value(32,false)
 			plr_head.enable_monster()
 		else:
 			monster = false
+			first_person_camera.compositor = load("res://shaders/comp/plr.res")
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
 	
@@ -398,6 +400,7 @@ func sync_pick_up(on:bool):
 #region hit_reactions
 
 func _hit_by_phyics():
+	if monster: return
 	velocity /= 10
 	if plr_head:
 		plr_head.damage_indicator()
@@ -405,6 +408,7 @@ func _hit_by_phyics():
 	
 func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector3.ZERO,debug:Variant=null):
 	if downed: return
+	if monster: return
 	print("hit")
 	latest_damage_source = damage_cause
 	if debug:
@@ -426,6 +430,7 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 			GDSync.call_func_all(down_player)
 		
 func down_player():
+	if monster: return
 	downed = true
 	lives -= 1
 	velocity = Vector3.ZERO

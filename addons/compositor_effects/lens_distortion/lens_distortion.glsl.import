@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://w4achyo0gd0i"
+path="res://.godot/imported/lens_distortion.glsl-a389ea5e3ef3a1000b939fd0f4f70a00.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/lens_distortion/lens_distortion.glsl"
+dest_files=["res://.godot/imported/lens_distortion.glsl-a389ea5e3ef3a1000b939fd0f4f70a00.res"]
+
+[params]
+

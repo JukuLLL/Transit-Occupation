@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bbogsneqf2c8h"
+path="res://.godot/imported/color_bleed.glsl-6db2d98334a8e855aad436cbe3c739fb.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/color_bleed/color_bleed.glsl"
+dest_files=["res://.godot/imported/color_bleed.glsl-6db2d98334a8e855aad436cbe3c739fb.res"]
+
+[params]
+

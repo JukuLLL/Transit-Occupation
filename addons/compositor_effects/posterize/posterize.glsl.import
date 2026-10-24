@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://b5tc0ocwidwm0"
+path="res://.godot/imported/posterize.glsl-a21ccc058c4f58eebe2710e1a58cbb8e.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/posterize/posterize.glsl"
+dest_files=["res://.godot/imported/posterize.glsl-a21ccc058c4f58eebe2710e1a58cbb8e.res"]
+
+[params]
+

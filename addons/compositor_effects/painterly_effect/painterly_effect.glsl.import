@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://df3vlcujrxla"
+path="res://.godot/imported/painterly_effect.glsl-7dfef3611c341adc3042b014d569ad11.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/painterly_effect/painterly_effect.glsl"
+dest_files=["res://.godot/imported/painterly_effect.glsl-7dfef3611c341adc3042b014d569ad11.res"]
+
+[params]
+

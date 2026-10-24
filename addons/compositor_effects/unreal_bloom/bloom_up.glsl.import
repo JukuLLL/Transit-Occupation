@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://d4keyeyf3cijr"
+path="res://.godot/imported/bloom_up.glsl-e7f0606a863f5ee64b8114e5c610db3c.res"
+
+[deps]
+
+source_file="res://addons/compositor_effects/unreal_bloom/bloom_up.glsl"
+dest_files=["res://.godot/imported/bloom_up.glsl-e7f0606a863f5ee64b8114e5c610db3c.res"]
+
+[params]
+
