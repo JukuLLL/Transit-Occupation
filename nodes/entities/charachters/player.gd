@@ -10,6 +10,7 @@ var downed_interact:interactable
 @export var ping_lifetime:float = 7.0
 @export var ping_max_distance:float = 300.0
 var current_ping:PingMarker
+var teammate_hud:Node
 @export var health :int=100
 @export var lives :int=3
 @export var speed := 5.0
@@ -136,9 +137,16 @@ func owner_changed(id:int):
 			plr_head.enable_monster()
 		else:
 			monster = false
+			_create_teammate_hud()
 			first_person_camera.compositor = load("res://shaders/comp/plr.res")
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
 	pass
+	
+func _create_teammate_hud():
+	if teammate_hud != null: return # owner_changed can fire more than once
+	teammate_hud = load("res://nodes/teammate_hud.gd").new()
+	teammate_hud.me = self
+	add_child(teammate_hud)
 	
 func _init() -> void:
 	dash_cooldown = 0
