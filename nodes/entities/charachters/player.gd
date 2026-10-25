@@ -52,6 +52,8 @@ var jump_velocity := 7.0
 var new_speed = 5.0
 var new_velocity = Vector3.ZERO
 var friction = 5
+@export var jump_spam_penalty := 0.4 # seconds you can't jump after pressing in the air
+var jump_lockout := 0.0
 
 var cross_hair_regular_pos:Vector2
 var grapple_area:Rect2
@@ -271,10 +273,14 @@ func movement(delta):
 	if Input.is_action_just_pressed("dash"):
 		dash()
 		
+	jump_lockout = maxf(jump_lockout - delta, 0.0)
+	if !is_on_floor() and Input.is_action_just_pressed("jump"):
+		jump_lockout = jump_spam_penalty
+		
 	if is_on_floor():
 		
 		floor_counter += 1
-		if Input.is_action_just_pressed("jump"):
+		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0:
 			var was_chained: bool = bhop
 			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
 			if velocity.length() > 0.2:
