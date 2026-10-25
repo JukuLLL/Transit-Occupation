@@ -35,8 +35,9 @@ var teammate_hud:Node
 @onready var player_mesh = $MeshInstance3D
 
 # DASH
+const DASH_COOLDOWN := 4.25 # seconds
 @export var dash_speed = 10
-@export var dash_cooldown = 60
+var dash_cooldown:float = 0.0
 
 var first_person := true
 
@@ -263,11 +264,9 @@ func movement(delta):
 		if !bhop:
 			new_speed = lerpf(new_speed,speed,delta * 5)
 			
-	if dash_cooldown != null:
-		dash_cooldown -= 1
-		dash_cooldown = clampi(dash_cooldown,0,INT32_MAX)
-		if plr_head:
-			plr_head.update_dash(dash_cooldown)
+	dash_cooldown = maxf(dash_cooldown - delta, 0.0)
+	if plr_head:
+		plr_head.update_dash(dash_cooldown, DASH_COOLDOWN)
 	
 	if Input.is_action_just_pressed("dash"):
 		dash()
@@ -316,11 +315,11 @@ func movement(delta):
 				velocity.z -= velocity.z / 10
 				
 func dash():
-	if dash_cooldown > 1:
+	if dash_cooldown > 0.0:
 		return
 	bhop = true
 	floor_counter = 0
-	dash_cooldown = 60
+	dash_cooldown = DASH_COOLDOWN
 	var push:Vector3=transform.basis * Vector3.FORWARD
 	velocity += push * dash_speed
 	

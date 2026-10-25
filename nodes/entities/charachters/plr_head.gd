@@ -25,10 +25,10 @@ func update_lives(value:int):
 	pass
 	#I HAVE NO LIVES COUNTER
 	
-func update_dash(cooldown:int, max_cooldown:int = 60):
+func update_dash(cooldown:float, max_cooldown:float = 1.0):
 	if dash_ring == null:
 		return
-	dash_ring.progress = 1.0 - float(cooldown) / max_cooldown
+	dash_ring.progress = 1.0 - cooldown / max_cooldown
 	
 func allow_interact(U_KEY:String,visibility:bool=false):
 	interact_label.text = "Press "+ U_KEY +" to use"
