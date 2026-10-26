@@ -26,6 +26,9 @@ var teammate_hud:Node
 
 @export var monster:bool=false
 @export var monster_hold_spot:Marker3D
+@export var grav_area:CollisionShape3D
+@export var down_timer: Timer
+
 
 @export var filter:PackedScene
 @onready var plr_head = $Head
@@ -375,22 +378,25 @@ func interact(plr_path:NodePath):
 			GDSync.call_func_on(GDSync.get_gdsync_owner(self),pickup,plr_path)
 		else:
 			if !picked_up:
-				GDSync.call_func_on(self.name.to_int(),revive)
+				GDSync.call_func_on(GDSync.get_gdsync_owner(self),revive)
 	pass
 	
-func revive():
+func revive(halved:bool=false):
 	if GDSync.is_gdsync_owner(self):
-		health = 100
+		var value:int=100
+		if halved:
+			value /= 2
+		health = value
 		plr_head.update_health(health)
 		downed = false
 	pass
 	
 func pickup(monster_path:NodePath):
-	var monster:player= get_node(monster_path)
+	var current_monster:player= get_node(monster_path)
 	print("picked " + str(picked_up))
 	if !picked_up:
 		GDSync.call_func_all(sync_pick_up,true)
-		monster_hold_spot = monster.monster_hold_spot
+		monster_hold_spot = current_monster.monster_hold_spot
 	else:
 		GDSync.call_func_all(sync_pick_up,false)
 	pass
@@ -457,7 +463,14 @@ func down_player():
 	col.shape = shp
 	downed_interact.add_child(col)
 	downed_interact.interacting.connect(interact)
+	if GDSync.is_gdsync_owner(self):
+		if !down_timer.is_stopped():
+			down_timer.start()
 	pass
+	
+func _on_down_timer_timeout() -> void:
+	revive(true)
+	pass # Replace with function body.
 	
 func downed_check():
 	if downed:
@@ -516,7 +529,7 @@ func set_grapple_target(pos:Vector3):
 			crosshair.position = first_person_camera.unproject_position(grapple_pos)
 			crosshair.play("interact")
 		
-func grappling_hook(delta:float):
+func grappling_hook(_delta:float):
 	if is_inside_tree():
 		if grapple_spots.is_empty():
 			grapple_spots.append_array(get_tree().get_nodes_in_group("grapple"))
@@ -611,7 +624,6 @@ func fling_object():
 			grab_held = false
 			$selection_ring.visible = false
 			ray.force_raycast_update()
-			var host:int=GDSync.get_host()
 			await get_tree().physics_frame
 			if ray.is_colliding():
 				if ray.get_collider().is_class("CharacterBody3D"):
@@ -628,7 +640,7 @@ func gravity_flip():
 		GDSync.emit_signal_remote_all(Network.unfreeze)
 		if $gravity_area/CollisionShape3D.disabled == true:
 			print("grav 2")
-			GDSync.call_func_all(sync_grav_vis,true,$gravity_area/CollisionShape3D.get_path())
+			GDSync.call_func_all(sync_grav_vis,true)
 			await get_tree().physics_frame
 			print($gravity_area.get_overlapping_bodies())
 			var plr_array:Array=Network.plr_node_finder($gravity_area.get_overlapping_bodies())
@@ -640,7 +652,7 @@ func gravity_flip():
 					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.change_gravity_state,1)
 					GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
 		else:
-			GDSync.call_func_all(sync_grav_vis,false,$gravity_area/CollisionShape3D.get_path())
+			GDSync.call_func_all(sync_grav_vis,false)
 		
 	if !$gravity_area/CollisionShape3D.disabled:
 		var plr_array:Array=Network.plr_node_finder($gravity_area.get_overlapping_bodies())
@@ -649,8 +661,8 @@ func gravity_flip():
 				GDSync.call_func_on(GDSync.get_gdsync_owner(plr),plr.change_gravity_state,-1)
 				GDSync.call_func_on(GDSync.get_gdsync_owner(plr),GeneralScreen.chaos,true)
 					
-func sync_grav_vis(on:bool,grav_area_path:NodePath):
-	var shape:CollisionShape3D=get_node(grav_area_path)
+func sync_grav_vis(on:bool):
+	var shape:CollisionShape3D=grav_area
 	if on:
 		shape.disabled = false
 		shape.visible = true

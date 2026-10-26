@@ -734,7 +734,7 @@ func switch_scene_success() -> void:
 	if active_scene_change == "": return
 	_scene_change_resolved = true
 	scene_ready_list.clear()
-	GDSync.change_scene_success.emit(active_scene_change)
+	#GDSync.change_scene_success.emit(active_scene_change)
 	request_processor.begin_scene_swap()
 	scene_ready.emit.call_deferred()
 

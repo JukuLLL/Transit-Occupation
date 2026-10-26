@@ -15,7 +15,8 @@ var list = []
 var plr_list = []
 
 func _process(delta: float) -> void:
-	$time.text = str(roundi($Timer.time_left))
+	if GDSync.is_host():
+		$time.text = str(roundi($Timer.time_left))
 
 
 func _join(client_id:int):
@@ -76,7 +77,8 @@ func change_level(map:String):
 	$Timer.stop()
 	GeneralScreen.fade(3)
 	await get_tree().create_timer(3).timeout
-	Network.change_level(map)
+	if GDSync.is_host():
+		Network.change_level(map)
 
 
 func _on_start_pressed() -> void:

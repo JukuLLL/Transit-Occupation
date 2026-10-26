@@ -115,10 +115,8 @@ var hit_targets = []
 func explode():
 	exploded = true
 	visible = false
-	var scene:PackedScene=VfxCreator.load_particle("explosion")
-	var vfx:BaseParticle=scene.instantiate()
-	add_sibling(vfx)
-	vfx.global_position = global_position
+	if GDSync.is_host():
+		VfxCreator.create_synced_particle("explosion",global_position)
 	var damage_area:Damager=Damager.new()
 	var collision:CollisionShape3D=CollisionShape3D.new()
 	collision.shape = SphereShape3D.new()

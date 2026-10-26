@@ -23,3 +23,8 @@ func load_particle(particle_name:String) -> PackedScene:
 	var scene:PackedScene=particles.get(particle_key)
 	return scene
 	
+func create_synced_particle(particle_name:String,to:Vector3):
+	var scene:BaseParticle=load_particle(particle_name).instantiate()
+	get_tree().current_scene.add_child(scene)
+	scene.global_position = to
+	

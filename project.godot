@@ -22,7 +22,12 @@ config/name="Transit Occupation"
 run/main_scene="uid://cra81vsj0nib3"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 run/max_fps=60
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/stretch_mode=0
+boot_splash/use_filter=false
+boot_splash/image="uid://cj4pd10dsbse"
 config/icon="res://icon.svg"
+boot_splash/minimum_display_time=250
 
 [audio]
 
@@ -163,6 +168,11 @@ ping={
 3d_physics/layer_30="interact"
 3d_physics/layer_31="fling"
 3d_physics/layer_32="grapple_block"
+
+[network]
+
+limits/packet_peer_stream/max_buffer_po2=32
+limits/webrtc/max_channel_in_buffer_kb=128
 
 [physics]
 
