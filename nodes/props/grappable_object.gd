@@ -65,7 +65,7 @@ func _pull_and_throw(from:Vector3,to:Vector3,force:float,close_distance:float,pl
 	var plr:player
 	var target:player
 	plr = get_node(plr_path)
-	if target_path.is_empty():
+	if !target_path.is_empty():
 		target = get_node(target_path)
 	plr.add_collision_exception_with(self)
 	pull_kill_timer.stop()
@@ -115,10 +115,15 @@ var hit_targets = []
 func explode():
 	exploded = true
 	visible = false
+	var scene:PackedScene=VfxCreator.load_particle("explosion")
+	var vfx:BaseParticle=scene.instantiate()
+	add_sibling(vfx)
+	vfx.global_position = global_position
 	var damage_area:Damager=Damager.new()
 	var collision:CollisionShape3D=CollisionShape3D.new()
 	collision.shape = SphereShape3D.new()
 	collision.shape.radius = 13
+	damage_area.affect_physics = true
 	damage_area.cause_of_damage = "Explosion"
 	damage_area.force_mult = 45
 	damage_area.damage_amount = 15

@@ -76,7 +76,7 @@ func change_level(map:String):
 	$Timer.stop()
 	GeneralScreen.fade(3)
 	await get_tree().create_timer(3).timeout
-	get_tree().change_scene_to_file(map)
+	Network.change_level(map)
 
 
 func _on_start_pressed() -> void:

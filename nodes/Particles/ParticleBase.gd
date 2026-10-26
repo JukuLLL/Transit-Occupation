@@ -8,21 +8,23 @@ class_name BaseParticle extends SynchronizedGPUParticles3D
 
 
 
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	finished.connect(finshed)
 	if autoplay:
 		if autoplay_synced:
-			emit_synced()
+			emit(true)
 		else:
-			emit()
+			emit(false)
 	pass # Replace with function body.
 	
-func emit(synced:bool=true):
+func emit(synced:bool):
 	if synced:
 		emit_synced()
 	else:
-		emit()
+		emitting = true
 
 
 func finshed():

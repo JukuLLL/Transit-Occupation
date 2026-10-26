@@ -14,6 +14,8 @@ var forced = ""
 
 signal unfreeze
 
+signal game_loaded
+
 func _unhandled_input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
 		await get_tree().process_frame
@@ -36,11 +38,16 @@ func name_is_player(id:int) -> bool:
 		if id == plr_id:
 			return true
 	return false
+	
+func change_level(path:String):
+	GDSync.change_scene(path)
 		
 		
 func _ready() -> void:
 	AudioServer.set_input_device_active(true)
 	GDSync.expose_signal(unfreeze)
+	GDSync.expose_signal(game_loaded)
+	GDSync.change_scene_success.connect(level_changed)
 	GDSync.lobby_joined.connect(joined)
 	GDSync.lobby_received.connect(lobby_recived)
 	GDSync.lobby_created.connect(lobby_created)
@@ -66,6 +73,9 @@ func multiplayer_start(local:bool=false) -> bool:
 	await GDSync.connected
 	GDSync.player_set_username(plr_name)
 	return true
+	
+func level_changed():
+	GDSync.emit_signal_remote_all(game_loaded)
 	
 
 func join_lobby(local:bool=false):

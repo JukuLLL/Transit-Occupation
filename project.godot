@@ -38,8 +38,9 @@ GDSync="*uid://cgo4kiocg4a4a"
 GDSyncSharp="*res://addons/GD-Sync/GDSync.cs"
 Console="*uid://ouiu5xh1cs8n"
 MusicManager="*uid://bwkwr6lejp5fs"
-SIgnalDebug="*uid://cjba3kjg28ixi"
+SIgnalDebug="uid://cjba3kjg28ixi"
 Currency="*uid://bflqh344wtsju"
+VfxCreator="*uid://6r4glbyrsowr"
 
 [display]
 
@@ -56,7 +57,7 @@ project/assembly_name="Transit Occupation"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GDDrawPlus/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/console/plugin.cfg", "res://addons/juicee/plugin.cfg", "res://addons/vfx_animaiton_player/plugin.cfg", "res://addons/xesa/ExposeThemProperties/plugin.cfg")
+enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GDDrawPlus/plugin.cfg", "res://addons/MultiPlay/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/console/plugin.cfg", "res://addons/juicee/plugin.cfg", "res://addons/ridiculous_coding/plugin.cfg", "res://addons/vfx_animaiton_player/plugin.cfg", "res://addons/xesa/ExposeThemProperties/plugin.cfg")
 
 [file_customization]
 
