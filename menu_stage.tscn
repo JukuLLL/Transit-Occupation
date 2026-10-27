@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://bapivbgrdk72c"]
+
+[ext_resource type="Script" uid="uid://csn4vl7yawepk" path="res://menus/menu_stage.gd" id="1_g54a3"]
+
+[sub_resource type="Environment" id="Environment_gp1v6"]
+background_mode = 1
+background_color = Color(0.23566183, 1.8199441e-07, 8.4228816e-08, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.99999994, 0.174173, 0.12721556, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dhj4k"]
+top_radius = 1.5
+bottom_radius = 1.5
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_agsto"]
+albedo_color = Color(0.36339182, 0.47835034, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_t5byd"]
+material = SubResource("StandardMaterial3D_agsto")
+radius = 0.4
+height = 1.8
+
+[node name="MenuStage" type="Node3D" unique_id=129314216 node_paths=PackedStringArray("character", "camera")]
+script = ExtResource("1_g54a3")
+character = NodePath("Character")
+camera = NodePath("Camera3D")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2030247122]
+environment = SubResource("Environment_gp1v6")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=910978458]
+transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=124535556]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 3.5)
+
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=726896214]
+mesh = SubResource("CylinderMesh_dhj4k")
+
+[node name="Character" type="Node3D" parent="." unique_id=240867513]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Character" unique_id=1587943187]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_t5byd")
