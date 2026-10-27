@@ -64,6 +64,9 @@ var gravity_state = 1
 
 var last_movement:float=0
 
+@export var min_bhop_speed := 4.0 # horizontal speed needed for the combo to count
+
+
 #endregion
 
 
@@ -286,11 +289,17 @@ func movement(delta):
 		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0:
 			var was_chained: bool = bhop
 			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
-			if velocity.length() > 0.2:
+			var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+			if horizontal_speed >= min_bhop_speed:
 				bhop = true
 				floor_counter = 0
 				if was_chained:
 					set_bhop_combo(bhop_combo +1)
+			else:
+				# Too slow: the chain breaks
+				bhop = false
+				if bhop_combo != 0:
+					set_bhop_combo(0)
 		else:
 			velocity.y = 0
 		if floor_counter > max_bhop_inaccuracy - 1:
