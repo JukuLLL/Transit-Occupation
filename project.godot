@@ -181,6 +181,7 @@ limits/webrtc/max_channel_in_buffer_kb=128
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 global_illumination/voxel_gi/quality=1
 textures/default_filters/anisotropic_filtering_level=3

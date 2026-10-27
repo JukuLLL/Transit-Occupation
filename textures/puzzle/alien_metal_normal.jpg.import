@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://i0bkmixv8w0x"
 path.s3tc="res://.godot/imported/alien_metal_normal.jpg-eb50cf0e2ae5c425969da12e497479d3.s3tc.ctex"
+path.etc2="res://.godot/imported/alien_metal_normal.jpg-eb50cf0e2ae5c425969da12e497479d3.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://textures/puzzle/alien_metal_normal.jpg"
-dest_files=["res://.godot/imported/alien_metal_normal.jpg-eb50cf0e2ae5c425969da12e497479d3.s3tc.ctex"]
+dest_files=["res://.godot/imported/alien_metal_normal.jpg-eb50cf0e2ae5c425969da12e497479d3.s3tc.ctex", "res://.godot/imported/alien_metal_normal.jpg-eb50cf0e2ae5c425969da12e497479d3.etc2.ctex"]
 
 [params]
 

@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsrixpig3uxji"
 path.s3tc="res://.godot/imported/alien_panel_normal.jpg-51b18d595ebee47f64eb61d7e2f2990b.s3tc.ctex"
+path.etc2="res://.godot/imported/alien_panel_normal.jpg-51b18d595ebee47f64eb61d7e2f2990b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://textures/puzzle/alien_panel_normal.jpg"
-dest_files=["res://.godot/imported/alien_panel_normal.jpg-51b18d595ebee47f64eb61d7e2f2990b.s3tc.ctex"]
+dest_files=["res://.godot/imported/alien_panel_normal.jpg-51b18d595ebee47f64eb61d7e2f2990b.s3tc.ctex", "res://.godot/imported/alien_panel_normal.jpg-51b18d595ebee47f64eb61d7e2f2990b.etc2.ctex"]
 
 [params]
 

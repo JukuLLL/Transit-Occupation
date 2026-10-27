@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7vbnqok7j38q"
 path.s3tc="res://.godot/imported/CNAL2.png-71ff1ded8a20dcd7d4b2bb12f5f707dc.s3tc.ctex"
+path.etc2="res://.godot/imported/CNAL2.png-71ff1ded8a20dcd7d4b2bb12f5f707dc.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://textures/world_textures/128x128/concrete/CNAL2.png"
-dest_files=["res://.godot/imported/CNAL2.png-71ff1ded8a20dcd7d4b2bb12f5f707dc.s3tc.ctex"]
+dest_files=["res://.godot/imported/CNAL2.png-71ff1ded8a20dcd7d4b2bb12f5f707dc.s3tc.ctex", "res://.godot/imported/CNAL2.png-71ff1ded8a20dcd7d4b2bb12f5f707dc.etc2.ctex"]
 
 [params]
 

@@ -52,6 +52,7 @@ func _ready() -> void:
 func _process(_delta:float) -> void:
 	if !is_instance_valid(me) or me.get_parent() == null:
 		return
+	if !is_inside_tree(): return
 	
 	# Every other survivor in the match, in a stable order
 	var mates:Array = []

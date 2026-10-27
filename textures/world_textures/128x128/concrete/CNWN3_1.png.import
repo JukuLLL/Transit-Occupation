@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://tkwqkuvll44v"
 path.s3tc="res://.godot/imported/CNWN3_1.png-eb24b7bbd402cbc5f5a1e82edd080cf7.s3tc.ctex"
+path.etc2="res://.godot/imported/CNWN3_1.png-eb24b7bbd402cbc5f5a1e82edd080cf7.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://textures/world_textures/128x128/concrete/CNWN3_1.png"
-dest_files=["res://.godot/imported/CNWN3_1.png-eb24b7bbd402cbc5f5a1e82edd080cf7.s3tc.ctex"]
+dest_files=["res://.godot/imported/CNWN3_1.png-eb24b7bbd402cbc5f5a1e82edd080cf7.s3tc.ctex", "res://.godot/imported/CNWN3_1.png-eb24b7bbd402cbc5f5a1e82edd080cf7.etc2.ctex"]
 
 [params]
 

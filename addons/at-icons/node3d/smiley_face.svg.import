@@ -4,16 +4,17 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dw6d7s0guumpo"
 path.s3tc="res://.godot/imported/smiley_face.svg-1f5145898b0740edd26085944bc749e2.s3tc.ctex"
+path.etc2="res://.godot/imported/smiley_face.svg-1f5145898b0740edd26085944bc749e2.etc2.ctex"
 metadata={
 "has_editor_variant": true,
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://addons/at-icons/node3d/smiley_face.svg"
-dest_files=["res://.godot/imported/smiley_face.svg-1f5145898b0740edd26085944bc749e2.s3tc.ctex"]
+dest_files=["res://.godot/imported/smiley_face.svg-1f5145898b0740edd26085944bc749e2.s3tc.ctex", "res://.godot/imported/smiley_face.svg-1f5145898b0740edd26085944bc749e2.etc2.ctex"]
 
 [params]
 

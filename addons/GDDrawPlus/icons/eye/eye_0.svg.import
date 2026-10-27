@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://h4ne5cwirvlb"
 path.s3tc="res://.godot/imported/eye_0.svg-c2731d2c27a1024e4631d92a2515cda2.s3tc.ctex"
+path.etc2="res://.godot/imported/eye_0.svg-c2731d2c27a1024e4631d92a2515cda2.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://addons/GDDrawPlus/icons/eye/eye_0.svg"
-dest_files=["res://.godot/imported/eye_0.svg-c2731d2c27a1024e4631d92a2515cda2.s3tc.ctex"]
+dest_files=["res://.godot/imported/eye_0.svg-c2731d2c27a1024e4631d92a2515cda2.s3tc.ctex", "res://.godot/imported/eye_0.svg-c2731d2c27a1024e4631d92a2515cda2.etc2.ctex"]
 
 [params]
 
