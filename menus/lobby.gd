@@ -14,23 +14,43 @@ func _ready() -> void:
 var list = []
 var plr_list = []
 
-func _process(delta: float) -> void:
+const MAX_PLAYERS := 7
+const COUNTDOWN := 30.0
+var last_shown := -1
+
+func _process(_delta: float) -> void:
 	if GDSync.is_host():
-		$time.text = str(roundi($Timer.time_left))
+		var secs := ceili($Timer.time_left) if !$Timer.is_stopped() else -1
+		if secs != last_shown:
+			last_shown = secs
+			GDSync.call_func_all(_set_time_text, secs)
+			
+func _check_full() -> void:
+	await get_tree().process_frame # let the client list update first
+	if !GDSync.is_host() or started:
+		return
+	var full := GDSync.lobby_get_all_clients().size() >= MAX_PLAYERS
+	if full and $Timer.is_stopped():
+		$Timer.start(COUNTDOWN)
+	elif !full and !$Timer.is_stopped():
+		$Timer.stop()
+
+func _set_time_text(secs:int) -> void:
+	$time.text = "" if secs < 0 else str(secs)
 
 
 func _join(client_id:int):
 	var id = $ItemList.add_item(str(GDSync.player_get_username(client_id)))
 	list.append(id)
 	plr_list.append(client_id)
-	pass
+	_check_full()
 	
 func _leave(client_id:int):
 	var index = plr_list.find(client_id)
 	list.erase(index)
 	$ItemList.remove_item(index)
 	plr_list.erase(client_id)
-	pass
+	_check_full()
 
 
 func _on_timer_timeout() -> void:
