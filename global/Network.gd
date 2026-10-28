@@ -12,6 +12,8 @@ var monster_id:int
 
 var forced = ""
 
+var pending_message := ""
+
 signal unfreeze
 
 signal game_loaded
@@ -45,6 +47,7 @@ func change_level(path:String):
 		
 func _ready() -> void:
 	AudioServer.set_input_device_active(true)
+	GDSync.lobby_join_failed.connect(lobby_join_failed)
 	GDSync.expose_signal(unfreeze)
 	GDSync.expose_signal(game_loaded)
 	GDSync.change_scene_success.connect(level_changed)
@@ -54,6 +57,22 @@ func _ready() -> void:
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
 	pass # Replace with function body.
+	
+			
+func lobby_join_failed(lobby_name:String, error:int):
+	var msg := "Could not join the lobby."
+	match error:
+		ENUMS.LOBBY_JOIN_ERROR.LOBBY_IS_FULL:
+			msg = "The lobby is full (max 7 players)."
+		ENUMS.LOBBY_JOIN_ERROR.LOBBY_DOES_NOT_EXIST:
+			msg = "That lobby doesn't exist."
+	return_to_menu(msg)
+
+func return_to_menu(message:String):
+	pending_message = message
+	GDSync.stop_multiplayer()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://menus/menu.scn")
 	
 func lobby_recived(lobbies:Dictionary):
 	print(lobbies)
@@ -89,7 +108,7 @@ func create_lobby(local:bool=false):
 	if await multiplayer_start(local):
 		get_tree().change_scene_to_file("uid://dhy3uk4ck23ud")
 		Network.hosting = false
-		GDSync.lobby_create("ABCD")
+		GDSync.lobby_create("ABCD", "", true, 7)
 		GDSync.lobby_join("ABCD")
 		GDSync.set_host(GDSync.get_client_id())
 		if local:

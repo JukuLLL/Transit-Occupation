@@ -18,6 +18,10 @@ func _ready() -> void:
 	$AddCredits.pressed.connect(_on_add_credits_pressed)
 	$AddGoldCoins.pressed.connect(_on_add_gold_coins_pressed)
 	
+	if Network.pending_message != "":
+		show_message(Network.pending_message)
+		Network.pending_message = ""
+	
 
 func connected():
 	print("connected")
@@ -93,4 +97,26 @@ func fade_in(duration := 2.3, hold := 1.3) -> void:
 	var tween := create_tween()
 	tween.tween_interval(hold)
 	tween.tween_property(rect, "modulate:a", 0.0, duration)
+	tween.tween_callback(layer.queue_free)
+	
+func show_message(text:String, duration := 4.0) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 101 # above the fade-in overlay
+	add_child(layer)
+	
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 8)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(label)
+	label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	label.offset_top = 40
+	
+	var tween := create_tween()
+	tween.tween_interval(duration)
+	tween.tween_property(label, "modulate:a", 0.0, 0.5)
 	tween.tween_callback(layer.queue_free)
