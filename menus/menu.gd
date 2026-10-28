@@ -7,6 +7,7 @@ extends Control
 
 
 func _ready() -> void:
+	fade_in()
 	GDSync.connected.connect(connected)
 	
 	Currency.credits_changed.connect(_update_credits_label)
@@ -77,3 +78,19 @@ func _on_add_gold_coins_pressed() -> void:
 func _on_clear_pressed() -> void:
 	Currency.delete_data()
 	pass # Replace with function body.
+	
+func fade_in(duration := 2.3, hold := 1.3) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	add_child(layer)
+	
+	var rect := ColorRect.new()
+	rect.color = Color.BLACK
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(rect)
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	var tween := create_tween()
+	tween.tween_interval(hold)
+	tween.tween_property(rect, "modulate:a", 0.0, duration)
+	tween.tween_callback(layer.queue_free)
