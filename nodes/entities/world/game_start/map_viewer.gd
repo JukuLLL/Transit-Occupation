@@ -1,13 +1,15 @@
-extends Node3D
+class_name showcaser extends Node3D
 
 @export var camera:Camera3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	GDSync.expose_node(self)
+	pass # Replace with function body.
+	
+func showcase_start():
 	camera.make_current()
 	$AnimationPlayer.play("showcase")
-	
-	pass # Replace with function body.
 
 func _physics_process(delta: float) -> void:
 	if Network.game_started:

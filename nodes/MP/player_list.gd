@@ -5,26 +5,39 @@ class_name plr_list extends Node3D
 @export var base_monster:PackedScene
 @export var view_timer:Timer
 @export var view_timer_label:Label
+@export var showcase:showcaser
 var started = false
 
 signal game_started
+
+var joined = []
+
+func add_to_host_joined(client:int):
+	joined.append(client)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	GDSync.client_left.connect(leave)
 	GDSync.expose_func(_start_game)
+	GDSync.expose_func(add_to_host_joined)
 	GDSync.expose_signal(game_started,ENUMS.EXPOSE_PERMISSION.HOST)
 	await get_tree().physics_frame
+	if !GDSync.is_host():
+		GDSync.call_func_on(GDSync.get_host(),add_to_host_joined,GDSync.get_client_id())
+	else:
+		add_to_host_joined(GDSync.get_host())
+			
 	#GDSync.client_joined.connect(join)
 	pass # Replace with function body.
 	
 
 func _physics_process(delta: float) -> void:
-	if GDSync.is_host():
+	if GDSync.is_host() and joined.has(GDSync.lobby_get_all_clients()):
 		if is_instance_valid(view_timer):
 			if view_timer:
 				if view_timer.is_stopped() and !started:
 					view_timer.start()
+					GDSync.call_func_all(showcase.showcase_start)
 				view_timer_label.text = str(roundi(view_timer.time_left))
 				
 
