@@ -17,6 +17,7 @@ func add_to_host_joined(client:int):
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	
 	GDSync.client_left.connect(leave)
 	GDSync.expose_func(_start_game)
 	GDSync.expose_func(add_to_host_joined)
@@ -26,13 +27,16 @@ func _ready() -> void:
 		GDSync.call_func_on(GDSync.get_host(),add_to_host_joined,GDSync.get_client_id())
 	else:
 		add_to_host_joined(GDSync.get_host())
-			
+		
 	#GDSync.client_joined.connect(join)
 	pass # Replace with function body.
 	
 
 func _physics_process(delta: float) -> void:
-	if GDSync.is_host() and joined.has(GDSync.lobby_get_all_clients()):
+	if GDSync.is_host():
+		print(GDSync.lobby_get_player_count())
+		print(joined.size())
+	if GDSync.is_host() and joined.size() >= GDSync.lobby_get_player_count():
 		if is_instance_valid(view_timer):
 			if view_timer:
 				if view_timer.is_stopped() and !started:
