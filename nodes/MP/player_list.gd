@@ -55,9 +55,10 @@ func _start_game():
 
 
 func leave(client_id:int):
-	var plr:player=find_child(str(client_id))
-	if plr != null:
-		plr.queue_free()
+	for child:player in get_children():
+		if child.name.to_int() == client_id:
+			child.queue_free()
+
 	pass
 	
 
