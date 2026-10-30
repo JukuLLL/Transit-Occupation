@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" uid="uid://x8d5on74bpt" path="res://gddraw/meshes/cube_uv_002.res" id="4_khcg2"]
 [ext_resource type="Shader" uid="uid://bgwe5qatspia8" path="res://shaders/TheCubePanel.tres" id="5_khcg2"]
 [ext_resource type="Texture2D" uid="uid://i0bkmixv8w0x" path="res://textures/puzzle/alien_metal_normal.jpg" id="8_b7mo7"]
+[ext_resource type="PackedScene" uid="uid://chwxuf41gpcab" path="res://nodes/entities/script_only/Puzzle/Puzzeles/VisionPuzzle.scn" id="8_pnsge"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_iyxlp"]
 render_priority = 0
@@ -132,11 +133,23 @@ metadata/_custom_type_script = "uid://xe2loijthdk6"
 [node name="PuzzleCube" parent="." unique_id=1663174974 instance=ExtResource("3_4i3qg")]
 transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
 
-[node name="Cube" parent="PuzzleCube" index="0" unique_id=1576063217]
+[node name="Cube" parent="PuzzleCube" index="0" unique_id=2055227731]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4459772, -0.5400443, -2.8842266)
 mesh = ExtResource("4_khcg2")
 surface_material_override/0 = SubResource("ShaderMaterial_iyxlp")
 surface_material_override/1 = SubResource("StandardMaterial3D_nlqyx")
 surface_material_override/2 = SubResource("ShaderMaterial_wr1w3")
+
+[node name="VisionPuzzle" parent="." unique_id=631756237 instance=ExtResource("8_pnsge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62016463, -0.6756076, -3.6074333)
+
+[node name="VisionPuzzle2" parent="." unique_id=1006345593 instance=ExtResource("8_pnsge")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.55932355, -0.6756076, -4.7944098)
+
+[node name="VisionPuzzle3" parent="." unique_id=75376275 instance=ExtResource("8_pnsge")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.722685, -0.6756076, -3.6009865)
+
+[node name="VisionPuzzle4" parent="." unique_id=333676090 instance=ExtResource("8_pnsge")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.5636207, -0.6756076, -2.447816)
 
 [editable path="PuzzleCube"]

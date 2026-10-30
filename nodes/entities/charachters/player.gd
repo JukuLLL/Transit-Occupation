@@ -366,8 +366,10 @@ func _physics_process(delta):
 			grapple_ray.look_at(grapple_pos)
 		if grapple_ray.is_colliding():
 			grappling_target = grapple_ray.get_collider()
-		
+			
+		socket_check()
 		grappling_hook(delta)
+		update_socket_lock()
 		if monster:
 			ability_check()
 			if Input.is_action_just_pressed("left_click"):
@@ -473,7 +475,7 @@ func down_player():
 	downed_interact.add_child(col)
 	downed_interact.interacting.connect(interact)
 	if GDSync.is_gdsync_owner(self):
-		if !down_timer.is_stopped():
+		if down_timer.is_stopped():
 			down_timer.start()
 	pass
 	
@@ -500,6 +502,7 @@ func downed_check():
 
 		
 func death():
+	release_socket()
 	if GDSync.is_gdsync_owner(self):
 		var scene:PackedScene=load("res://nodes/entities/charachters/spectator.scn")
 		var cam:FreeLookCamera=scene.instantiate()
@@ -547,7 +550,7 @@ func grappling_hook(_delta:float):
 			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
 				closest = spot
 		set_grapple_target(closest.global_position)
-		var mouse= Input.is_action_pressed("right_click")
+		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket)
 		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 			if !closest.allow_pull:
 				pass
@@ -565,6 +568,79 @@ func grappling_hook(_delta:float):
 #endregion
 
 #region interacting
+
+@export var socket_lock_sensitivity := 150.0 # pixels from the screen center
+@export var socket_lock_distance := 8.0      # meters
+var socket_target:PowerSocket
+
+func find_socket_target() -> PowerSocket:
+	var best:PowerSocket = null
+	var best_d := socket_lock_sensitivity
+	for node in get_tree().get_nodes_in_group("power_socket"):
+		var sock := node as PowerSocket
+		if sock == null or sock.puzzle == null:
+			continue
+		var why := ""
+		if sock.puzzle.finished:
+			why = "finished"
+		elif sock.puzzle.worker != 0:
+			why = "worker=" + str(sock.puzzle.worker)
+		elif global_position.distance_to(sock.global_position) > socket_lock_distance:
+			why = "too far"
+		elif first_person_camera.is_position_behind(sock.global_position):
+			why = "behind"
+		else:
+			var d := first_person_camera.unproject_position(sock.global_position).distance_to(cross_hair_regular_pos)
+			if d >= best_d:
+				why = "off-center by " + str(roundi(d)) + "px"
+			else:
+				best_d = d
+				best = sock
+		if why != "" and Input.is_action_just_pressed("ping"):
+			print(sock.puzzle.name, " skipped: ", why)
+	return best
+
+func update_socket_lock():
+	if Input.is_action_just_pressed("ping"):
+		print("held_socket: ", held_socket, " | downed: ", downed, " | target: ", socket_target)
+	if downed or is_instance_valid(held_socket):
+		socket_target = null
+		return
+	socket_target = find_socket_target()
+	if socket_target != null:
+		crosshair.position = first_person_camera.unproject_position(socket_target.global_position)
+		crosshair.play("interact")
+
+var held_socket:PowerSocket
+@export var socket_max_distance := 6.0
+
+func socket_check():
+	if is_instance_valid(held_socket):
+		var too_far := global_position.distance_to(held_socket.global_position) > socket_max_distance
+		if !Input.is_action_pressed("right_click") or downed or too_far:
+			release_socket()
+		return
+	held_socket = null
+	if downed or !Input.is_action_just_pressed("right_click"):
+		return
+	
+	# Prefer the crosshair lock, fall back to the ray
+	var target:PowerSocket = socket_target
+	if target == null:
+		var ray:RayCast3D = plr_head.interact_ray
+		if ray.is_colliding() and ray.get_collider() is PowerSocket:
+			target = ray.get_collider()
+	if target == null:
+		return
+	
+	print("claiming socket ", target.get_path())
+	held_socket = target
+	held_socket.begin_hold(name.to_int())
+
+func release_socket():
+	if is_instance_valid(held_socket):
+		held_socket.end_hold(name.to_int())
+	held_socket = null
 		
 var last_interactable:interactable
 		

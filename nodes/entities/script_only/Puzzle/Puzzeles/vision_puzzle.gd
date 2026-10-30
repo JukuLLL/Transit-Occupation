@@ -2,8 +2,16 @@ class_name VisionPuzzle extends PuzzleBase
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	super() # runs PuzzleBase._ready (exposes the node and "finished")
 	start_vision_pos = vision.position
-	pass # Replace with function body.
+	power_changed.connect(_on_power_changed)
+
+func _on_power_changed(powered:bool) -> void:
+	if !powered and !finished:
+		timer.stop()
+		lose.stop()
+		times = 0
+		lerper = 0.0
 
 @export var timer: Timer
 @export var lose: Timer
@@ -28,11 +36,15 @@ func get_pos_in_list() -> Vector3:
 	pass # Replace with function body.
 
 func _on_timer_timeout() -> void:
+	if worker == 0:
+		timer.stop()
+		times = 0
+		lerper = 0.0
+		return
 	if !finished:
 		times += 1
 	if times >= held_for:
 		finish_puzzle()
-	pass # Replace with function body.
 
 
 func _on_interactable_interest_lost() -> void:
@@ -48,6 +60,9 @@ func _process(delta: float) -> void:
 var lerper:float=0.0
 
 func _on_interactable_interacting_held(player_node_path: NodePath) -> void:
+	print("4: held, is_worker = ", is_worker(player_node_path)) #TESTING
+	if !is_worker(player_node_path):
+		return
 	print("connect")
 	if !finished:
 		if timer.is_stopped():
