@@ -47,7 +47,6 @@ func change_level(path:String):
 		
 func _ready() -> void:
 	AudioServer.set_input_device_active(true)
-	GDSync.lobby_join_failed.connect(lobby_join_failed)
 	GDSync.expose_signal(unfreeze)
 	GDSync.expose_signal(game_loaded)
 	GDSync.change_scene_success.connect(level_changed)
@@ -56,6 +55,7 @@ func _ready() -> void:
 	GDSync.lobby_created.connect(lobby_created)
 	GDSync.connected.connect(connected)
 	GDSync.lobby_creation_failed.connect(lobby_creation_failed)
+	GDSync.lobby_join_failed.connect(lobby_join_failed)
 	pass # Replace with function body.
 	
 			
@@ -69,6 +69,7 @@ func lobby_join_failed(lobby_name:String, error:int):
 	return_to_menu(msg)
 
 func return_to_menu(message:String):
+	return
 	pending_message = message
 	GDSync.stop_multiplayer()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

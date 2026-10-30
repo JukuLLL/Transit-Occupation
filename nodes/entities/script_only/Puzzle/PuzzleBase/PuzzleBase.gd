@@ -4,6 +4,7 @@ class_name PuzzleBase extends Node3D
 @export_category("General Puzzle Settings")
 
 @export var synced:bool=true
+@export var enabled:bool=true
 
 @export var puzzle_name:String="ABC"
 
