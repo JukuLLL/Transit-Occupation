@@ -94,6 +94,8 @@ func change_level(map:String):
 	if started: return
 	set_side()
 	started = true
+	if GDSync.is_host():
+		GDSync.lobby_set_open(false)
 	$Timer.stop()
 	GeneralScreen.fade(3)
 	await get_tree().create_timer(3).timeout

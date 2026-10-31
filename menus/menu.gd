@@ -21,6 +21,9 @@ func _ready() -> void:
 	if Network.pending_message != "":
 		show_message(Network.pending_message)
 		Network.pending_message = ""
+		
+	$play.custom_minimum_size = Vector2(420, 120)
+	$play.add_theme_font_size_override("font_size", 56)
 	
 
 func connected():
@@ -29,9 +32,13 @@ func connected():
 		#if child.get("disabled") != null:
 			#child.disabled = false
 
+var play_menu:PlayMenu
+
 func _on_play_pressed() -> void:
-	Network.join_lobby()
-	pass # Replace with function body.
+	if is_instance_valid(play_menu):
+		return
+	play_menu = PlayMenu.new()
+	add_child(play_menu)
 
 
 func _on_create_pressed() -> void:
