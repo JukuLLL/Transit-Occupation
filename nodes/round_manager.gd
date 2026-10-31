@@ -117,6 +117,7 @@ func _end_round(escaped_ids:Array, monster_won:bool) -> void:
 		text = "Escaped" if escaped else "Lost"
 		color = Color(0.3, 1.0, 0.3) if escaped else Color(1.0, 0.25, 0.25)
 	
+	_hide_game_ui()
 	_apply_blur()
 	_show_results(text, color)
 	
@@ -146,17 +147,27 @@ func _show_time(secs:int) -> void:
 
 func _apply_blur() -> void:
 	var layer := CanvasLayer.new()
-	layer.layer = 40
+	layer.layer = 45 # above other overlays, still below the results (50)
 	add_child(layer)
 	var rect := ColorRect.new()
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var shader := Shader.new()
 	shader.code = """
 shader_type canvas_item;
-uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear_mipmap;
-uniform float blur : hint_range(0.0, 6.0) = 0.0;
+uniform sampler2D screen_tex : hint_screen_texture, repeat_disable, filter_linear;
+uniform float radius = 14.0;
 void fragment() {
-	COLOR = textureLod(screen_tex, SCREEN_UV, blur);
+	vec2 px = SCREEN_PIXEL_SIZE * radius;
+	vec4 sum = vec4(0.0);
+	float total = 0.0;
+	for (int x = -4; x <= 4; x++) {
+		for (int y = -4; y <= 4; y++) {
+			float w = 1.0 / (1.0 + float(x * x + y * y) * 0.3);
+			sum += texture(screen_tex, SCREEN_UV + vec2(float(x), float(y)) * px) * w;
+			total += w;
+		}
+	}
+	COLOR = vec4((sum / total).rgb * 0.7, 1.0);
 }
 """
 	var mat := ShaderMaterial.new()
@@ -164,18 +175,67 @@ void fragment() {
 	rect.material = mat
 	layer.add_child(rect)
 	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	create_tween().tween_property(mat, "shader_parameter/blur", 3.5, 0.6)
 
 func _show_results(text:String, color:Color) -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 50 # above the blur, so the text stays sharp
 	add_child(layer)
+	
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.7)
+	style.border_color = color
+	style.border_width_left = 16
+	style.border_width_bottom = 4
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 36
+	style.content_margin_right = 56
+	style.content_margin_top = 18
+	style.content_margin_bottom = 22
+	style.shadow_color = Color(color.r, color.g, color.b, 0.35)
+	style.shadow_size = 24
+	panel.add_theme_stylebox_override("panel", style)
+	layer.add_child(panel)
+	
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", -4)
+	panel.add_child(box)
+	
+	var small := Label.new()
+	small.text = "MATCH RESULT"
+	small.add_theme_font_size_override("font_size", 22)
+	small.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	small.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(small)
+	
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 64)
+	label.add_theme_font_size_override("font_size", 110)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
-	label.add_theme_constant_override("outline_size", 12)
+	label.add_theme_constant_override("outline_size", 20)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(label)
-	label.position = Vector2(40, 40)
+	box.add_child(label)
+	
+	# Slide in from the left and fade in
+	panel.position = Vector2(-700, 40)
+	panel.modulate.a = 0.0
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(panel, "position:x", 40.0, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(panel, "modulate:a", 1.0, 0.3)
+	
+	# Gentle glow pulse for the rest of the results screen
+	var pulse := create_tween().set_loops()
+	pulse.tween_property(label, "self_modulate", Color(1.3, 1.3, 1.3), 0.8).set_trans(Tween.TRANS_SINE)
+	pulse.tween_property(label, "self_modulate", Color.WHITE, 0.8).set_trans(Tween.TRANS_SINE)
+	
+func _hide_game_ui() -> void:
+	# Every HUD layer in the match: health, state, combo, teammate rings, pings, timer, damage flash
+	for layer in get_tree().current_scene.find_children("*", "CanvasLayer", true, false):
+		layer.visible = false
+	# The crosshair isn't inside a layer, so hide it separately
+	for p in _get_players():
+		if is_instance_valid(p.plr_head) and is_instance_valid(p.plr_head.crosshair):
+			p.plr_head.crosshair.hide()
