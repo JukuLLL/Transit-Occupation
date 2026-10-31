@@ -21,9 +21,12 @@ func update_health(value:int):
 	health_bar.value = value
 	health_label.text = "%d" % value
 	
+var lives_label:Label
+
 func update_lives(value:int):
-	pass
-	#I HAVE NO LIVES COUNTER
+	if lives_label == null:
+		return
+	lives_label.text = "Lives: %d" % value
 	
 func update_dash(cooldown:float, max_cooldown:float = 1.0):
 	if dash_ring == null:
@@ -46,6 +49,13 @@ func _ready() -> void:
 	update_health(plr.health)
 	health_label.position = Vector2(0, health_bar.size.y + 4)
 	health_label.size.x = health_bar.size.x
+	lives_label = Label.new()
+	lives_label.add_theme_font_size_override("font_size", 24)
+	lives_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	lives_label.add_theme_constant_override("outline_size", 6)
+	health_bar.get_parent().add_child(lives_label)
+	lives_label.position = health_bar.position + Vector2(0, health_bar.size.y + 40)
+	update_lives(plr.lives)
 	
 func _input(event: InputEvent) -> void:
 	if Input.is_action_pressed("VC"):

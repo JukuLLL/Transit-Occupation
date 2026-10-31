@@ -1,6 +1,12 @@
 class_name player extends CharacterBody3D
 
 #region Variables
+var trapped := false
+var dead := false
+var nest:Nest
+var rescue_target:Nest
+var rescue_progress := 0.0
+var rescue_ring:CooldownRing
 var latest_damage_source:String="NULL"
 
 var downed:bool = false
@@ -345,40 +351,44 @@ func dash():
 #endregion
 
 func _physics_process(delta):
-
 	downed_check()
-
-#region others
 	if !GDSync.is_gdsync_owner(self):
-		pass
-#endregion
-		
-#region client
-	else:
-		visibility_to_blind()
-			
-		$Label.text = str(velocity.length())
-		$Label2.text = str(grappling_target)
-		
-		movement(delta)
-		
-		if grapple_pos != null:
-			grapple_ray.look_at(grapple_pos)
-		if grapple_ray.is_colliding():
-			grappling_target = grapple_ray.get_collider()
-			
-		socket_check()
-		grappling_hook(delta)
-		update_socket_lock()
-		if monster:
-			ability_check()
-			if Input.is_action_just_pressed("left_click"):
-				attack()
-			
-		interact_check()
-		
-		move_and_slide()
-#endregion
+		return
+	
+	visibility_to_blind()
+	
+	# Downed or trapped: no normal controls
+	if downed or trapped:
+		release_socket()
+		cancel_rescue()
+		if downed and !picked_up:
+			velocity.x = 0
+			velocity.z = 0
+			velocity.y -= gravity.y * gravity_state
+			move_and_slide()
+		return
+	
+	$Label.text = str(velocity.length())
+	$Label2.text = str(grappling_target)
+	
+	movement(delta)
+	
+	if grapple_pos != null:
+		grapple_ray.look_at(grapple_pos)
+	if grapple_ray.is_colliding():
+		grappling_target = grapple_ray.get_collider()
+	
+	rescue_check(delta)
+	socket_check()
+	grappling_hook(delta)
+	update_socket_lock()
+	if monster:
+		ability_check()
+		if Input.is_action_just_pressed("left_click"):
+			attack()
+	
+	interact_check()
+	move_and_slide()
 	
 	
 #region Downed
@@ -393,35 +403,82 @@ func interact(plr_path:NodePath):
 	pass
 	
 func revive(halved:bool=false):
+	if !GDSync.is_gdsync_owner(self) or !downed:
+		return
+	GDSync.call_func_all(sync_revive, halved)
+
+func sync_revive(halved:bool):
+	downed = false
 	if GDSync.is_gdsync_owner(self):
-		var value:int=100
-		if halved:
-			value /= 2
-		health = value
+		down_timer.stop()
+		health = 50 if halved else 100
+		GDSync.sync_var(self,"health",true)
 		plr_head.update_health(health)
-		downed = false
-	pass
-	
+		plr_head.interact_ray.enabled = true
+
 func pickup(monster_path:NodePath):
-	var current_monster:player= get_node(monster_path)
-	print("picked " + str(picked_up))
+	# Only downed players can be picked up
+	if !downed or trapped or dead:
+		return
 	if !picked_up:
-		GDSync.call_func_all(sync_pick_up,true)
-		monster_hold_spot = current_monster.monster_hold_spot
+		down_timer.stop()
+		GDSync.call_func_all(sync_pick_up, true, monster_path)
 	else:
-		GDSync.call_func_all(sync_pick_up,false)
-	pass
-	
-func sync_pick_up(on:bool):
-	print("picked_up")
+		GDSync.call_func_all(sync_pick_up, false)
+		down_timer.start()
+
+func sync_pick_up(on:bool, monster_path:NodePath = NodePath("")):
 	picked_up = on
-	GDSync.sync_var(self,"picked_up")
+	monster_hold_spot = null
+	if on:
+		var carrier := get_node_or_null(monster_path) as player
+		if carrier != null:
+			monster_hold_spot = carrier.monster_hold_spot
 	for plr:player in get_tree().get_nodes_in_group("plr"):
 		if plr != self:
 			if on:
-				self.add_collision_exception_with(plr)
+				add_collision_exception_with(plr)
 			else:
-				self.remove_collision_exception_with(plr)
+				remove_collision_exception_with(plr)
+
+# Runs on every client (called from Nest.sync_trap)
+func set_trapped(n:Nest) -> void:
+	trapped = true
+	downed = false
+	picked_up = false
+	monster_hold_spot = null
+	nest = n
+	velocity = Vector3.ZERO
+	for plr:player in get_tree().get_nodes_in_group("plr"):
+		if plr != self:
+			remove_collision_exception_with(plr)
+	if is_instance_valid(downed_interact):
+		downed_interact.queue_free()
+	downed_interact = null
+	if GDSync.is_gdsync_owner(self):
+		down_timer.stop()
+		plr_head.interact_ray.enabled = false
+
+# Runs on every client (called from Nest.sync_rescue)
+func set_rescued(pos:Vector3) -> void:
+	trapped = false
+	downed = false
+	nest = null
+	velocity = Vector3.ZERO
+	global_position = pos
+	if GDSync.is_gdsync_owner(self):
+		health = 50
+		GDSync.sync_var(self,"health",true)
+		plr_head.update_health(health)
+		plr_head.interact_ray.enabled = true
+
+# Runs on every client, so lives stay consistent
+func lose_life() -> void:
+	lives = maxi(lives - 1, 0)
+	if GDSync.is_gdsync_owner(self) and is_instance_valid(plr_head):
+		plr_head.update_lives(lives)
+	if lives <= 0:
+		death()
 
 
 	
@@ -437,8 +494,7 @@ func _hit_by_phyics():
 		plr_head.shake(1)
 	
 func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector3.ZERO,debug:Variant=null):
-	if downed: return
-	if monster: return
+	if downed or trapped or dead or monster: return
 	print("hit")
 	latest_damage_source = damage_cause
 	if debug:
@@ -454,17 +510,13 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 		plr_head.update_health(health)
 	
 	if health < 1:
-		if lives < 1:
-			GDSync.call_func_all(death)
-		else:
-			GDSync.call_func_all(down_player)
-		
+		GDSync.call_func_all(down_player)
+
 func down_player():
-	if monster: return
-	downed = true
-	lives -= 1
+	if monster or downed or trapped or dead: return
+	downed = true # note: no life is lost here any more
 	velocity = Vector3.ZERO
-	if downed_interact == null:
+	if !is_instance_valid(downed_interact):
 		downed_interact = interactable.new()
 	add_child(downed_interact)
 	downed_interact.synced = false
@@ -477,31 +529,37 @@ func down_player():
 	if GDSync.is_gdsync_owner(self):
 		if down_timer.is_stopped():
 			down_timer.start()
-	pass
-	
+
 func _on_down_timer_timeout() -> void:
-	revive(true)
-	pass # Replace with function body.
-	
+	if !picked_up and !trapped:
+		revive(true)
+
 func downed_check():
+	if trapped:
+		velocity = Vector3.ZERO
+		if is_instance_valid(nest) and nest.is_inside_tree():
+			global_position = nest.spot_position()
+		return
 	if downed:
 		if GDSync.is_gdsync_owner(self):
-			var ray :RayCast3D= plr_head.interact_ray
-			ray.enabled = false
-			var down:Vector3=Vector3(0,velocity.y,0)
-			velocity = down
+			plr_head.interact_ray.enabled = false
+			velocity = Vector3(0, velocity.y, 0)
 		if picked_up:
 			velocity = Vector3.ZERO
-			if monster_hold_spot != null and picked_up:
-				print(picked_up)
+			if is_instance_valid(monster_hold_spot) and monster_hold_spot.is_inside_tree():
 				global_position = monster_hold_spot.global_position
-				#GDSync.sync_var_on(Network.monster_id,self,"global_position")
-	else:
-		if downed_interact != null:
-			downed_interact.queue_free()
+	elif is_instance_valid(downed_interact):
+		downed_interact.queue_free()
+		downed_interact = null
 
-		
 func death():
+	print("DEATH on ", name, " monster=", monster, " lives=", lives)
+	print_stack()
+	dead = true
+	trapped = false
+	downed = false
+	nest = null
+	cancel_rescue()
 	release_socket()
 	if GDSync.is_gdsync_owner(self):
 		var scene:PackedScene=load("res://nodes/entities/charachters/spectator.scn")
@@ -509,13 +567,11 @@ func death():
 		get_tree().current_scene.add_child(cam)
 		cam.global_position = global_position
 		cam.make_current()
-		pass
 	self.hide()
 	process_mode = Node.PROCESS_MODE_DISABLED
 	set_process_input(false)
 	set_physics_process(false)
 	set_process(false)
-	pass
 #endregion
 	
 #region grapple
@@ -545,12 +601,15 @@ func grappling_hook(_delta:float):
 	if is_inside_tree():
 		if grapple_spots.is_empty():
 			grapple_spots.append_array(get_tree().get_nodes_in_group("grapple"))
+		grapple_spots = grapple_spots.filter(func(s): return is_instance_valid(s) and s.is_inside_tree())
+		if grapple_spots.is_empty():
+			return
 		var closest:grabble_point = grapple_spots.get(0)
 		for spot:grabble_point in grapple_spots:
 			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
 				closest = spot
 		set_grapple_target(closest.global_position)
-		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket)
+		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket) and rescue_target == null
 		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 			if !closest.allow_pull:
 				pass
@@ -572,6 +631,58 @@ func grappling_hook(_delta:float):
 @export var socket_lock_sensitivity := 150.0 # pixels from the screen center
 @export var socket_lock_distance := 8.0      # meters
 var socket_target:PowerSocket
+
+func find_rescue_nest() -> Nest:
+	for node in get_tree().get_nodes_in_group("nest"):
+		var n := node as Nest
+		if n != null and n.can_be_rescued_by(self):
+			return n
+	return null
+
+func rescue_check(delta:float):
+	if monster or picked_up:
+		cancel_rescue()
+		return
+	if rescue_target == null:
+		# Rescue starts on a right click press inside range
+		if !Input.is_action_just_pressed("right_click") or is_instance_valid(held_socket):
+			return
+		var n := find_rescue_nest()
+		if n == null:
+			return
+		rescue_target = n
+		rescue_progress = 0.0
+	else:
+		# Cancelled by releasing right click or leaving the range
+		if !Input.is_action_pressed("right_click") or !is_instance_valid(rescue_target) or !rescue_target.can_be_rescued_by(self):
+			cancel_rescue()
+			return
+	
+	rescue_progress += delta
+	_update_rescue_ui(rescue_progress / rescue_target.rescue_time)
+	if rescue_progress >= rescue_target.rescue_time:
+		var done := rescue_target
+		cancel_rescue()
+		done.request_rescue()
+
+func cancel_rescue():
+	rescue_target = null
+	rescue_progress = 0.0
+	if is_instance_valid(rescue_ring):
+		rescue_ring.hide()
+
+func _update_rescue_ui(ratio:float):
+	if !is_instance_valid(rescue_ring):
+		var layer := CanvasLayer.new()
+		add_child(layer)
+		rescue_ring = CooldownRing.new()
+		rescue_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(rescue_ring)
+		rescue_ring.size = Vector2(100, 100)
+		var screen := get_viewport().get_visible_rect().size
+		rescue_ring.position = Vector2(screen.x / 2 - 50, screen.y / 2 + 60)
+	rescue_ring.show()
+	rescue_ring.progress = ratio
 
 func find_socket_target() -> PowerSocket:
 	var best:PowerSocket = null
@@ -621,7 +732,7 @@ func socket_check():
 			release_socket()
 		return
 	held_socket = null
-	if downed or !Input.is_action_just_pressed("right_click"):
+	if downed or rescue_target != null or !Input.is_action_just_pressed("right_click"):
 		return
 	
 	# Prefer the crosshair lock, fall back to the ray
@@ -645,28 +756,26 @@ func release_socket():
 var last_interactable:interactable
 		
 func interact_check():
-	var ray:RayCast3D=plr_head.interact_ray
-	var collider:Node3D=ray.get_collider()
-	var interactable_object:interactable
+	if !is_instance_valid(last_interactable):
+		last_interactable = null
+	var ray:RayCast3D = plr_head.interact_ray
+	var collider:Object = null
+	var interactable_object:interactable = null
 	if ray.is_colliding():
-		collider=ray.get_collider()
-		if collider.has_method("interact"):
-			interactable_object=collider
+		collider = ray.get_collider()
+		if is_instance_valid(collider) and collider.has_method("interact"):
+			interactable_object = collider
 			last_interactable = interactable_object
-			plr_head.allow_interact(last_interactable.KEY,true)
+			plr_head.allow_interact(last_interactable.KEY, true)
 	if Input.is_action_pressed("left_click"):
-		if collider != null:
-			if collider.has_method("interact"):
-				interactable_object.interact(self)
+		if interactable_object != null:
+			interactable_object.interact(self)
 	elif Input.is_action_just_released("left_click") or !ray.is_colliding() or collider != last_interactable:
-		var key:String
+		var key:String = ""
 		if last_interactable != null:
 			last_interactable.lose_focus()
 			key = last_interactable.KEY
-		else:
-			key = ""
-		plr_head.allow_interact(key,false)
-		pass
+		plr_head.allow_interact(key, false)
 #endregion
 		
 #region monster abilities

@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://bgj4ddmd725jw"]
+
+[ext_resource type="Script" uid="uid://c6cej22e1ehpk" path="res://nodes/nest.gd" id="1_a18bm"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kdgf2"]
+size = Vector3(3, 2, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kdgf2"]
+size = Vector3(1.5, 0.2, 1.5)
+
+[node name="Nest" type="Area3D" unique_id=1475710939]
+script = ExtResource("1_a18bm")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1316004365]
+shape = SubResource("BoxShape3D_kdgf2")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=329212454]
+mesh = SubResource("BoxMesh_kdgf2")
