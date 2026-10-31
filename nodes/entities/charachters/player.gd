@@ -1,6 +1,9 @@
 class_name player extends CharacterBody3D
 
 #region Variables
+var escaped := false
+var _escape_sent := false
+signal escaped_changed(value:bool)
 var trapped := false
 var dead := false
 var nest:Nest
@@ -356,6 +359,8 @@ func _physics_process(delta):
 		return
 	
 	visibility_to_blind()
+	escape_check()
+	update_state_ui()
 	
 	# Downed or trapped: no normal controls
 	if downed or trapped:
@@ -554,12 +559,12 @@ func downed_check():
 		downed_interact = null
 
 func death():
-	print("DEATH on ", name, " monster=", monster, " lives=", lives)
-	print_stack()
+	escaped = false
 	dead = true
 	trapped = false
 	downed = false
 	nest = null
+	update_state_ui()
 	cancel_rescue()
 	release_socket()
 	if GDSync.is_gdsync_owner(self):
@@ -922,4 +927,69 @@ func set_health_dev(hp:String):
 	if plr_head:
 		plr_head.update_health(hp.to_int())
 	
+#endregion
+
+#region Escape
+func can_escape() -> bool:
+	return !monster and !dead and !trapped
+
+func current_state_text() -> String:
+	var base := "Alive"
+	var color := Color.WHITE
+	if dead:
+		return "Dead"
+	elif trapped:
+		base = "Trapped"
+		color = Color(0.8, 0.4, 1.0)
+	elif downed and picked_up:
+		base = "Carried"
+		color = Color(1.0, 0.6, 0.2)
+	elif downed:
+		base = "Downed"
+		color = Color(1.0, 0.3, 0.3)
+	
+	if escaped:
+		return "Escaped" if base == "Alive" else base + " + Escaped"
+	return base
+
+func update_state_ui():
+	if !is_instance_valid(plr_head) or monster:
+		return
+	var text := current_state_text()
+	var color := Color.WHITE
+	match text:
+		"Escaped": color = Color(0.4, 1.0, 0.4)
+		"Downed", "Downed + Escaped": color = Color(1.0, 0.3, 0.3)
+		"Carried", "Carried + Escaped": color = Color(1.0, 0.6, 0.2)
+		"Trapped": color = Color(0.8, 0.4, 1.0)
+		"Dead": color = Color(0.6, 0.6, 0.6)
+	plr_head.update_state(text, color)
+
+# Runs on the owner's machine only
+func escape_check():
+	var inside := false
+	if can_escape():
+		for z in get_tree().get_nodes_in_group("escape_zone"):
+			if (z as Area3D).overlaps_body(self):
+				inside = true
+				break
+	if inside != _escape_sent:
+		_escape_sent = inside
+		GDSync.call_func_all(set_escaped, inside)
+
+# Runs on every client
+func set_escaped(value:bool) -> void:
+	if value and (monster or dead):
+		return
+	if escaped == value:
+		return
+	escaped = value
+	escaped_changed.emit(value)
+
+# For the future match logic
+func is_out_of_play() -> bool:
+	return !monster and (escaped or downed or dead or trapped)
+
+func has_won() -> bool:
+	return !monster and escaped and !dead
 #endregion

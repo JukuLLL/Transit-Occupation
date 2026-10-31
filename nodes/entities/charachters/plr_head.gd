@@ -15,6 +15,8 @@ class_name head extends Node3D
 @export var interact_label:Label
 @export var dash_ring:CooldownRing
 
+var state_label:Label
+var _last_state := ""
 
 func update_health(value:int):
 	value = clampi(value,0,INT16_MAX)
@@ -56,6 +58,13 @@ func _ready() -> void:
 	health_bar.get_parent().add_child(lives_label)
 	lives_label.position = health_bar.position + Vector2(0, health_bar.size.y + 40)
 	update_lives(plr.lives)
+	state_label = Label.new()
+	state_label.add_theme_font_size_override("font_size", 24)
+	state_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	state_label.add_theme_constant_override("outline_size", 6)
+	health_bar.get_parent().add_child(state_label)
+	state_label.position = health_bar.position + Vector2(0, -36)
+	update_state("Alive")
 	
 func _input(event: InputEvent) -> void:
 	if Input.is_action_pressed("VC"):
@@ -67,6 +76,8 @@ func enable_monster():
 	if plr.monster:
 		first_person_camera.set_cull_mask_value(4,false)
 		first_person_camera.set_cull_mask_value(10,false)
+	if state_label:
+		state_label.hide()
 
 
 func _physics_process(delta: float) -> void:
@@ -74,3 +85,11 @@ func _physics_process(delta: float) -> void:
 
 func damage_indicator():
 	$CanvasLayer/TextureRect.self_modulate += (Color.RED / 4)
+	
+
+func update_state(text:String, color:Color = Color.WHITE):
+	if state_label == null or text == _last_state:
+		return
+	_last_state = text
+	state_label.text = "State: " + text
+	state_label.add_theme_color_override("font_color", color)

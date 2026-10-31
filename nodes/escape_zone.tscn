@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://cp64qg7ex2wj7"]
+
+[ext_resource type="Script" uid="uid://cnherruadp1nn" path="res://nodes/escape_zone.gd" id="1_ubugp"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kdgf2"]
+size = Vector3(6, 4, 6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gp1v6"]
+albedo_color = Color(0, 0.78279966, 0.09767384, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kdgf2"]
+material = SubResource("StandardMaterial3D_gp1v6")
+size = Vector3(6, 0.1, 6)
+
+[node name="EscapeZone" type="Area3D" unique_id=2058038376]
+script = ExtResource("1_ubugp")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1736425727]
+shape = SubResource("BoxShape3D_kdgf2")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1315311074]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.95, 0)
+mesh = SubResource("BoxMesh_kdgf2")
