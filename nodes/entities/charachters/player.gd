@@ -382,6 +382,7 @@ func _physics_process(delta):
 	socket_check()
 	grappling_hook(delta)
 	update_socket_lock()
+	update_rescue_lock()
 	if monster:
 		ability_check()
 		if Input.is_action_just_pressed("left_click"):
@@ -631,6 +632,18 @@ func grappling_hook(_delta:float):
 @export var socket_lock_sensitivity := 150.0 # pixels from the screen center
 @export var socket_lock_distance := 8.0      # meters
 var socket_target:PowerSocket
+
+func update_rescue_lock():
+	if downed or trapped or monster or picked_up:
+		return
+	var n := find_rescue_nest()
+	if n == null:
+		return
+	var pos := n.spot_position()
+	if first_person_camera.is_position_behind(pos):
+		return
+	crosshair.position = first_person_camera.unproject_position(pos)
+	crosshair.play("interact")
 
 func find_rescue_nest() -> Nest:
 	for node in get_tree().get_nodes_in_group("nest"):
