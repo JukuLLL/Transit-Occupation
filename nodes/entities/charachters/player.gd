@@ -197,7 +197,7 @@ func visibility_to_blind():
 		
 #region movement_and_camera
 func _unhandled_input(event):
-	if !GDSync.is_gdsync_owner(self): return
+	if !GDSync.is_gdsync_owner(self) or Network.round_over: return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Turn the player left/right
 		rotation.y += (-event.relative.x * mouse_sensitivity) * gravity_state
@@ -354,6 +354,9 @@ func dash():
 #endregion
 
 func _physics_process(delta):
+	if Network.round_over:
+		velocity = Vector3.ZERO
+		return
 	downed_check()
 	if !GDSync.is_gdsync_owner(self):
 		return
@@ -500,7 +503,7 @@ func _hit_by_phyics():
 		plr_head.shake(1)
 	
 func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector3.ZERO,debug:Variant=null):
-	if downed or trapped or dead or monster: return
+	if downed or trapped or dead or monster or Network.round_over: return
 	print("hit")
 	latest_damage_source = damage_cause
 	if debug:

@@ -36,6 +36,8 @@ func can_be_rescued_by(p:player) -> bool:
 		and global_position.distance_to(p.global_position) <= rescue_distance
 
 func _physics_process(delta:float) -> void:
+	if Network.round_over:
+		return
 	if occupant != null and !is_instance_valid(occupant):
 		occupant = null # the player left the game
 	

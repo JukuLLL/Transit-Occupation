@@ -12,6 +12,8 @@ var monster_id:int
 
 var forced = ""
 
+var round_over := false
+
 var pending_message := ""
 
 signal unfreeze
@@ -69,7 +71,8 @@ func lobby_join_failed(lobby_name:String, error:int):
 	return_to_menu(msg)
 
 func return_to_menu(message:String):
-	return
+	round_over = false
+	game_started = false
 	pending_message = message
 	GDSync.stop_multiplayer()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
