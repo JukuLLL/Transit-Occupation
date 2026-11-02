@@ -2,14 +2,29 @@ extends Control
 
 var maps:Array=["uid://cket7yaadcvm3"]
 
+var survivor_only_toggle:CheckButton
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	GDSync.expose_node(self)
 	GDSync.client_joined.connect(_join)
 	GDSync.client_left.connect(_leave)
+	survivor_only_toggle = CheckButton.new()
+	survivor_only_toggle.text = "Survivor-Only Queue"
+	survivor_only_toggle.add_theme_font_size_override("font_size", 28)
+	survivor_only_toggle.tooltip_text = "Never be picked as the Monster (unless everyone chooses this)"
+	add_child(survivor_only_toggle)
+	survivor_only_toggle.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	survivor_only_toggle.offset_left = 24
+	survivor_only_toggle.offset_bottom = -24
+	survivor_only_toggle.toggled.connect(_on_survivor_only_toggled)
+	GDSync.player_set_data("SURVIVOR_ONLY", false) # default: queued for both roles
 	await get_tree().create_timer(1).timeout
 	$start.visible = GDSync.is_host()
 	pass # Replace with function body.
+	
+func _on_survivor_only_toggled(on:bool) -> void:
+	GDSync.player_set_data("SURVIVOR_ONLY", on)
 
 var list = []
 var plr_list = []
@@ -63,19 +78,29 @@ var started = false
 var monster_id:int=0
 
 func set_side():
-	if GDSync.is_host():
-		if monster_id == 0:
-			monster_id = GDSync.lobby_get_all_clients().pick_random()
-		for client:int in GDSync.lobby_get_all_clients():
-			print(client)
-			if !Network.forced.is_empty():
-				return
-			if client == monster_id:
-				GDSync.call_func_on(client,set_side_data,true)
-				print("SET SIDE M")
-			else:
-				GDSync.call_func_on(client,set_side_data,false)
-				print("SET SIDE P")
+	if !GDSync.is_host():
+		return
+	if !Network.forced.is_empty():
+		return # testing: roles are forced from the menu
+	
+	var clients:Array = GDSync.lobby_get_all_clients()
+	if clients.is_empty():
+		return
+	
+	# Everyone who did not opt into Survivor-Only is eligible
+	var eligible:Array = []
+	for c:int in clients:
+		if !bool(GDSync.player_get_data(c, "SURVIVOR_ONLY", false)):
+			eligible.append(c)
+	
+	# Fallback: everyone is Survivor-Only, so pick anyone
+	if eligible.is_empty():
+		eligible = clients.duplicate()
+	
+	monster_id = eligible.pick_random()
+	
+	for c:int in clients:
+		GDSync.call_func_on(c, set_side_data, c == monster_id)
 				
 func set_side_data(monster:bool):
 	print(monster)
@@ -94,6 +119,8 @@ func change_level(map:String):
 	if started: return
 	set_side()
 	started = true
+	if is_instance_valid(survivor_only_toggle):
+		survivor_only_toggle.disabled = true
 	$Timer.stop()
 	GeneralScreen.fade(3)
 	await get_tree().create_timer(3).timeout
@@ -107,7 +134,5 @@ func _on_start_pressed() -> void:
 	pass # Replace with function body.
 
 
-func _on_item_list_item_selected(index: int) -> void:
-	if GDSync.is_host():
-		monster_id = plr_list.get(index)
-	pass # Replace with function body.
+func _on_item_list_item_selected(_index: int) -> void:
+	pass
