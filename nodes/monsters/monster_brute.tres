@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MonsterDef" format=3 uid="uid://drm0anx1hcwf7"]
+
+[ext_resource type="PackedScene" uid="uid://bn7ite7dvrga5" path="res://nodes/monsters/brute_preview.tscn" id="1_gr4cg"]
+[ext_resource type="Script" uid="uid://osb7a828g0ge" path="res://nodes/monster_def.gd" id="1_mg6fn"]
+[ext_resource type="PackedScene" uid="uid://deqiokg4bt2dt" path="res://nodes/entities/charachters/brute.scn" id="2_xqapw"]
+
+[resource]
+script = ExtResource("1_mg6fn")
+display_name = "The Brute"
+description = "Passive - Silenced Steps: The Brute's footsteps are loud. He can B-Hop to silence them.
+
+E Ability - All-Knowing: The Brute spawns small drones that reveal nearby player's location.
+
+Shift - Dash: Moves foward a long distance, destroying the first survivor in the way."
+scene = ExtResource("2_xqapw")
+preview_scene = ExtResource("1_gr4cg")
+metadata/_custom_type_script = "uid://osb7a828g0ge"

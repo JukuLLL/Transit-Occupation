@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bn7ite7dvrga5"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_kdgf2"]
+radius = 0.55
+height = 2.25
+
+[node name="BrutePreview" type="Node3D" unique_id=800450997]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1183506375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.125, 0)
+mesh = SubResource("CapsuleMesh_kdgf2")

@@ -46,6 +46,9 @@ var teammate_hud:Node
 @onready var third_person_camera_spot = $Head.third_person_camera
 @onready var player_mesh = $MeshInstance3D
 
+@export var kit:Node # the monster's ability kit (BruteKit), empty for survivors
+var speed_mult := 1.0
+
 # DASH
 const DASH_COOLDOWN := 4.25 # seconds
 @export var dash_speed = 10
@@ -274,18 +277,20 @@ func movement(delta):
 	
 	floor_counter = clampi(floor_counter,0,max_bhop_inaccuracy + 1)
 		
-	if Input.is_action_pressed("sprint"):
+	if Input.is_action_pressed("sprint") and !(kit != null and kit.disable_sprint):
 		if !bhop:
 			new_speed = lerpf(new_speed,sprint_speed,delta * 5)
 	else:
 		if !bhop:
 			new_speed = lerpf(new_speed,speed,delta * 5)
 			
+	var eff_speed:float = new_speed * speed_mult
+			
 	dash_cooldown = maxf(dash_cooldown - delta, 0.0)
 	if plr_head:
 		plr_head.update_dash(dash_cooldown, DASH_COOLDOWN)
 	
-	if Input.is_action_just_pressed("dash"):
+	if kit == null and Input.is_action_just_pressed("dash"):
 		dash()
 		
 	jump_lockout = maxf(jump_lockout - delta, 0.0)
@@ -316,8 +321,8 @@ func movement(delta):
 			if bhop_combo != 0:
 				set_bhop_combo(0)
 		if input:
-			velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 40)
-			velocity.z = move_toward(velocity.z,direction.z * new_speed,delta * 40)
+			velocity.x = move_toward(velocity.x,direction.x * eff_speed,delta * 40)
+			velocity.z = move_toward(velocity.z,direction.z * eff_speed,delta * 40)
 		else:
 			if !bhop:
 				velocity.x -= velocity.x / (friction / 2)
@@ -328,8 +333,8 @@ func movement(delta):
 		new_velocity = velocity
 		if input:
 			if !bhop:
-				velocity.x = move_toward(velocity.x,direction.x * new_speed,delta * 35)
-				velocity.z = move_toward(velocity.z,direction.z * new_speed, delta * 35)
+				velocity.x = move_toward(velocity.x,direction.x * eff_speed,delta * 35)
+				velocity.z = move_toward(velocity.z,direction.z * eff_speed, delta * 35)
 			else:
 				var horizontal_velocity = Vector3(velocity.x, 0, velocity.z)
 				var current_horizontal_speed = horizontal_velocity.length()
@@ -379,6 +384,8 @@ func _physics_process(delta):
 	$Label.text = str(velocity.length())
 	$Label2.text = str(grappling_target)
 	
+	speed_mult = kit.speed_multiplier() if kit != null and kit.ready_done else 1.0
+	
 	movement(delta)
 	
 	if grapple_pos != null:
@@ -392,12 +399,20 @@ func _physics_process(delta):
 	update_socket_lock()
 	update_rescue_lock()
 	if monster:
-		ability_check()
-		if Input.is_action_just_pressed("left_click"):
-			attack()
+		if kit != null:
+			if kit.ready_done:
+				kit.tick(delta)
+		else:
+			ability_check()
+			if Input.is_action_just_pressed("left_click"):
+				attack()
 	
 	interact_check()
+	if kit != null and kit.ready_done:
+		kit.before_slide(delta)
 	move_and_slide()
+	if kit != null and kit.ready_done:
+		kit.after_slide(delta)
 	
 	
 #region Downed
