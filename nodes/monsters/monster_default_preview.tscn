@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://jjtaplhsh2c6"]
+
+[ext_resource type="PackedScene" uid="uid://cov8ii10ri48s" path="res://temporary_models/goat_sim_brown_goat.glb" id="1_t5cg6"]
+
+[sub_resource type="PlaceholderMesh" id="PlaceholderMesh_doo83"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wn5kw"]
+albedo_color = Color(1, 0, 0.016462803, 1)
+emission_enabled = true
+emission = Color(2.6034334, 0, 0, 1)
+emission_energy_multiplier = 4.44
+
+[sub_resource type="SphereMesh" id="SphereMesh_4mlsp"]
+material = SubResource("StandardMaterial3D_wn5kw")
+
+[node name="MonsterPreview" type="Node3D" unique_id=1866920261]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=815096893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8217114, 0)
+layers = 2
+mesh = SubResource("PlaceholderMesh_doo83")
+
+[node name="Sketchfab_Scene" parent="MeshInstance3D" unique_id=188272101 instance=ExtResource("1_t5cg6")]
+transform = Transform3D(-0.75, 0, 6.556708e-08, 0, 0.75, 0, -6.556708e-08, 0, -0.75, 0, -0.81855834, 0)
+
+[node name="eye" type="MeshInstance3D" parent="MeshInstance3D" unique_id=1040443887]
+transform = Transform3D(0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0.09123859, 0.3410622, -0.9529948)
+mesh = SubResource("SphereMesh_4mlsp")
+
+[node name="eye2" type="MeshInstance3D" parent="MeshInstance3D" unique_id=320271765]
+transform = Transform3D(0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, -0.08248159, 0.3410622, -0.9529948)
+mesh = SubResource("SphereMesh_4mlsp")

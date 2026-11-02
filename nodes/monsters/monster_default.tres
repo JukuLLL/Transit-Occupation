@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MonsterDef" format=3 uid="uid://ineos4qkde"]
+
+[ext_resource type="PackedScene" uid="uid://d2ni8vy6djytp" path="res://nodes/entities/charachters/monster.scn" id="1_6fcw8"]
+[ext_resource type="Script" uid="uid://osb7a828g0ge" path="res://nodes/monster_def.gd" id="1_funsb"]
+[ext_resource type="PackedScene" uid="uid://jjtaplhsh2c6" path="res://nodes/monsters/monster_default_preview.tscn" id="1_kmsat"]
+
+[resource]
+script = ExtResource("1_funsb")
+display_name = "The Stalker"
+description = "Placeholder Description"
+scene = ExtResource("1_6fcw8")
+preview_scene = ExtResource("1_kmsat")
+metadata/_custom_type_script = "uid://osb7a828g0ge"
