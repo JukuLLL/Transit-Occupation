@@ -1,3 +1,4 @@
+@tool
 class_name physics_sounds extends Node
 
 var parent_rigid_body:flingable_object

@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cxvnp1oyt4yqn"
-path.bptc="res://.godot/imported/meadow_2_2k.exr-e8e96deb725ecf4fbf59371ac440a7a7.bptc.ctex"
-path.astc="res://.godot/imported/meadow_2_2k.exr-e8e96deb725ecf4fbf59371ac440a7a7.astc.ctex"
+uid="uid://bw53uefg8jko6"
+path.s3tc="res://.godot/imported/meadow_2_2k.png-54c722da1c600a1642d1adbc039c5f34.s3tc.ctex"
+path.etc2="res://.godot/imported/meadow_2_2k.png-54c722da1c600a1642d1adbc039c5f34.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/meadow_2_2k.exr"
-dest_files=["res://.godot/imported/meadow_2_2k.exr-e8e96deb725ecf4fbf59371ac440a7a7.bptc.ctex", "res://.godot/imported/meadow_2_2k.exr-e8e96deb725ecf4fbf59371ac440a7a7.astc.ctex"]
+source_file="res://textures/meadow_2_2k.png"
+dest_files=["res://.godot/imported/meadow_2_2k.png-54c722da1c600a1642d1adbc039c5f34.s3tc.ctex", "res://.godot/imported/meadow_2_2k.png-54c722da1c600a1642d1adbc039c5f34.etc2.ctex"]
 
 [params]
 

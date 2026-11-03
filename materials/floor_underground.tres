@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://ceu1b2qloilau"]
+
+[ext_resource type="Texture2D" uid="uid://d4edopppes0vh" path="res://textures/world_textures/128x128/concrete/CNAL3.png" id="1_e8fnj"]
+
+[resource]
+albedo_texture = ExtResource("1_e8fnj")
+uv1_scale = Vector3(0.43, 0.43, 0.43)
+uv1_triplanar = true
