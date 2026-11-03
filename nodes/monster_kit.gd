@@ -8,6 +8,7 @@ var is_local := false
 var ready_done := false
 
 func _ready() -> void:
+	GDSync.expose_node(self)
 	plr = get_parent() as player
 	await get_tree().physics_frame # the player's name is assigned right after add_child
 	client_id = plr.name.to_int()
