@@ -87,6 +87,7 @@ plr=""
 lights="AllGroupedLights"
 plr_spawn=""
 monster_spawn=""
+nav=""
 
 [input]
 
