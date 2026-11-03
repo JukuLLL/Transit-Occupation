@@ -2,7 +2,7 @@ class_name UBEdition
 ## Which build this is: full or demo.
 
 
-const DEMO := true
+const DEMO := false
 
 ## The public store URL, used by the toolbar chip, the buy dialog and the watermark.
 const STORE_URL := "https://calinleafshade.itch.io/unibuilder"
