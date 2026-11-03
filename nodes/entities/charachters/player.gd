@@ -39,7 +39,6 @@ var teammate_hud:Node
 @export var down_timer: Timer
 
 
-@export var filter:PackedScene
 @onready var plr_head = $Head
 @onready var crosshair = $Head.crosshair
 @onready var first_person_camera:Camera3D = $Head.first_person_camera
@@ -152,8 +151,6 @@ func owner_changed(id:int):
 		await get_tree().physics_frame
 		if GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM") == "MONSTER":
 			monster = true
-			add_child(filter.instantiate())
-			first_person_camera.compositor = load("res://shaders/comp/monster_vis.res")
 			grapple_ray.set_collision_mask_value(32,false)
 			plr_head.enable_monster()
 		else:
