@@ -85,6 +85,8 @@ folder_colors={
 grapple=""
 plr=""
 lights="AllGroupedLights"
+plr_spawn=""
+monster_spawn=""
 
 [input]
 

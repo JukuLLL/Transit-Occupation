@@ -127,7 +127,10 @@ func join(client_id:int, monster_index:int = 0) -> void:
 	plr.name = str(client_id)
 	plr.monster = is_monster
 	var group := "monster_spawn" if is_monster else "plr_spawn"
-	plr.global_transform = get_tree().get_nodes_in_group(group).pick_random().global_transform
+	if get_tree().get_nodes_in_group(group).is_empty():
+		pass
+	else:
+		plr.global_transform = get_tree().get_nodes_in_group(group).pick_random().global_transform
 	GDSync.set_gdsync_owner(plr,client_id)
 
 func _on_timer_timeout() -> void:

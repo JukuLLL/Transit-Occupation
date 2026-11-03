@@ -1,6 +1,6 @@
 extends Control
 
-var maps:Array=["uid://cket7yaadcvm3"]
+var maps:Array=["uid://xujj17tg66nh"]
 
 var survivor_only_toggle:CheckButton
 
