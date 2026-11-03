@@ -275,7 +275,8 @@ func _host_dash_hit(sender:int, target_id:int) -> void:
 	if plr.global_position.distance_to(t.global_position) > dash_hit_radius + 6.0:
 		return
 	h_dash_active = false
-	_call_all(t.death) # instant elimination
+	_call_on(target_id, t.set_health_dev, ["0"])
+	_call_all(t.down_player)
 
 func _dist_to_segment(p:Vector3, a:Vector3, b:Vector3) -> float:
 	var ab := b - a
