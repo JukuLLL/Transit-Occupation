@@ -1004,6 +1004,10 @@ func set_escaped(value:bool) -> void:
 # For the future match logic
 func is_out_of_play() -> bool:
 	return !monster and (escaped or downed or dead or trapped)
+	
+# Alive = none of the other states apply
+func is_alive_state() -> bool:
+	return !monster and !dead and !downed and !trapped and !escaped and !picked_up
 
 func has_won() -> bool:
 	return !monster and escaped and !dead

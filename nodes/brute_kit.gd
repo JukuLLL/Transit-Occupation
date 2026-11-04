@@ -338,7 +338,7 @@ func _host_scan_loop(center:Vector3, life:float) -> void:
 	var t := 0.0
 	while t < life and is_inside_tree() and !Network.round_over:
 		for p in survivors():
-			if p.dead or p.escaped:
+			if !p.is_alive_state():
 				continue
 			if p.global_position.distance_to(center) <= scan_radius:
 				_call_on(client_id, _reveal, [p.name.to_int(), reveal_time])
