@@ -122,8 +122,8 @@ func change_level(map:String):
 	if is_instance_valid(survivor_only_toggle):
 		survivor_only_toggle.disabled = true
 	$Timer.stop()
-	GeneralScreen.fade(3)
-	await get_tree().create_timer(3).timeout
+	GeneralScreen.fade(3.5)
+	await get_tree().create_timer(0.1).timeout
 	if GDSync.is_host():
 		Network.change_level(map)
 
