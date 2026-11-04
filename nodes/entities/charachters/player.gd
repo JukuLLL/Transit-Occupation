@@ -43,7 +43,7 @@ var teammate_hud:Node
 @onready var crosshair = $Head.crosshair
 @onready var first_person_camera:Camera3D = $Head.first_person_camera
 @onready var third_person_camera_spot = $Head.third_person_camera
-@onready var player_mesh = $MeshInstance3D
+@export var player_mesh:MeshInstance3D
 
 @export var kit:Node # the monster's ability kit (BruteKit), empty for survivors
 var speed_mult := 1.0
@@ -178,13 +178,13 @@ func _ready():
 	if monster:
 		grapple_ray.target_position.z = (25 * grapple_distance) * -1
 	await get_tree().physics_frame
-	GDSync.set_gdsync_owner($MeshInstance3D,name.to_int())
 	await get_tree().physics_frame
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	new_speed = speed
 #endregion
 
 func visibility_to_blind():
+	return
 	$MeshInstance3D.set_layer_mask_value(1,true)
 	return
 	if velocity.length() > 0:
