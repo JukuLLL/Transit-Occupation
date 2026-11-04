@@ -297,7 +297,7 @@ func movement(delta):
 	if is_on_floor():
 		
 		floor_counter += 1
-		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0:
+		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0 and !(kit != null and kit.has_method("blocks_jump") and kit.blocks_jump()):
 			var was_chained: bool = bhop
 			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
 			var horizontal_speed := Vector2(velocity.x, velocity.z).length()

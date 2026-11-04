@@ -184,9 +184,11 @@ func _attack_result(hit:bool) -> void:
 # Dash
 # =====================================================================
 func _try_dash() -> void:
+	if !plr.is_on_floor():
+		return
 	if dash_cd > 0.0:
 		return
-	dash_cd = dash_cooldown # predicted, the host confirms or corrects it
+	dash_cd = dash_cooldown
 	_begin_dash()
 	_call_host(_host_dash, [client_id])
 
@@ -232,8 +234,16 @@ func before_slide(delta:float) -> void:
 		return
 	dash_left -= delta
 	prev_pos = plr.global_position
+	# Steer: follow the current look direction every frame
+	var f := -plr.first_person_camera.global_transform.basis.z
+	f.y = 0.0
+	if f.length() > 0.01:
+		dash_dir = f.normalized()
 	plr.velocity.x = dash_dir.x * dash_speed
 	plr.velocity.z = dash_dir.z * dash_speed
+	
+func blocks_jump() -> bool:
+	return dashing
 
 func after_slide(_delta:float) -> void:
 	if !dashing:
