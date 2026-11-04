@@ -1,6 +1,7 @@
 class_name player extends CharacterBody3D
 
 #region Variables
+var _death_announced := false
 var escaped := false
 var _escape_sent := false
 signal escaped_changed(value:bool)
@@ -576,6 +577,7 @@ func downed_check():
 func death():
 	escaped = false
 	dead = true
+	_announce_death()
 	trapped = false
 	downed = false
 	nest = null
@@ -593,6 +595,17 @@ func death():
 	set_process_input(false)
 	set_physics_process(false)
 	set_process(false)
+	
+func _announce_death() -> void:
+	if monster or _death_announced:
+		return
+	_death_announced = true
+	var pname := str(GDSync.player_get_username(name.to_int()))
+	if pname == "":
+		pname = "Player"
+	var notice := DeathNotice.new()
+	notice.message = "%s has been consumed." % pname
+	get_tree().current_scene.add_child(notice)
 #endregion
 	
 #region grapple
