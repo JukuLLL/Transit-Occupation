@@ -1,8 +1,18 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://ceu1b2qloilau"]
 
 [ext_resource type="Texture2D" uid="uid://d4edopppes0vh" path="res://textures/world_textures/128x128/concrete/CNAL3.png" id="1_e8fnj"]
+[ext_resource type="Texture2D" uid="uid://ducq50wjomug0" path="res://textures/world_textures/128x128/concrete/CNAL3_normal.png" id="2_r13hm"]
+[ext_resource type="Texture2D" uid="uid://is3n4qujgiho" path="res://textures/world_textures/128x128/concrete/CNAL3_rough.png" id="3_6xm8u"]
 
 [resource]
 albedo_texture = ExtResource("1_e8fnj")
+roughness = 0.76
+roughness_texture = ExtResource("3_6xm8u")
+roughness_texture_channel = 4
+normal_enabled = true
+normal_scale = 0.1
+normal_texture = ExtResource("2_r13hm")
+heightmap_enabled = true
+heightmap_scale = 0.957
+heightmap_texture = ExtResource("2_r13hm")
 uv1_scale = Vector3(0.43, 0.43, 0.43)
-uv1_triplanar = true
