@@ -1,7 +1,7 @@
 class_name DeathNotice extends CanvasLayer
 
 const SOUND_PATH := "res://nodes/entities/script_only/Sounds/deadnotification.wav"
-const SHOW_TIME := 4.0
+const SHOW_TIME := 6.0
 
 static var stack_count := 0 # lets two deaths in a row sit one above the other
 
@@ -14,17 +14,14 @@ func _ready() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.2, 0.2, 0.2, 0.75) # slightly transparent gray
-	style.border_color = Color(0.75, 0.75, 0.75)
-	style.border_width_top = 1 # thin border on the top and bottom edges
-	style.border_width_bottom = 1
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
+	style.content_margin_top = 24
+	style.content_margin_bottom = 24
 	panel.add_theme_stylebox_override("panel", style)
 	add_child(panel)
 	
 	var label := Label.new()
 	label.text = message
-	label.add_theme_font_size_override("font_size", 26)
+	label.add_theme_font_size_override("font_size", 38)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(label)
@@ -48,7 +45,7 @@ func _ready() -> void:
 	# Fade in, hold, fade out
 	panel.modulate.a = 0.0
 	var tw := create_tween()
-	tw.tween_property(panel, "modulate:a", 1.0, 0.2)
+	tw.tween_property(panel, "modulate:a", 1.0, 0.6)
 	tw.tween_interval(SHOW_TIME)
 	tw.tween_property(panel, "modulate:a", 0.0, 0.5)
 	await tw.finished
