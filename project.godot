@@ -176,6 +176,7 @@ brute_scan={
 
 [layer_names]
 
+3d_render/layer_3="decal"
 3d_render/layer_10="plr"
 3d_physics/layer_1="player"
 3d_physics/layer_2="Map"
