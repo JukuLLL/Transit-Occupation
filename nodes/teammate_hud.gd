@@ -2,32 +2,40 @@ class_name TeammateHud extends CanvasLayer
 
 const MAX_SLOTS := 5
 const MAX_HEALTH := 100.0
-const RING_SIZE := 64.0
+const RING_SIZE := 72.0
+const ICON_INSET := 9.0 # gap between the ring edge and the state circle
+
+# Change these to your real file paths
+const ICON_PATHS := {
+	"alive": "res://textures/UI/alive.png",
+	"downed": "res://textures/UI/downed.png",
+	"trapped": "res://textures/UI/trapped.png",
+	"dead": "res://textures/UI/dead.png",
+}
 
 var me:player
 var column:VBoxContainer
 var rows:Dictionary = {} # client id -> row
+var icons:Dictionary = {} # state name -> Texture2D
 
 
-# A ring that drains as health drops, with the health number in the middle
+# A health ring with the teammate's state circle behind it
 class HealthRing extends Control:
 	var value := 1.0:
 		set(v):
 			value = clampf(v, 0.0, 1.0)
 			queue_redraw()
-	var label:Label
-	
-	func _ready() -> void:
-		label = Label.new()
-		label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		label.add_theme_font_size_override("font_size", 16)
-		label.add_theme_color_override("font_outline_color", Color.BLACK)
-		label.add_theme_constant_override("outline_size", 4)
-		add_child(label)
+	var icon:Texture2D:
+		set(t):
+			if icon != t:
+				icon = t
+				queue_redraw()
+	var inset := 9.0
 	
 	func _draw() -> void:
+		# State circle first, so everything else is drawn over it
+		if icon != null:
+			draw_texture_rect(icon, Rect2(Vector2.ONE * inset, size - Vector2.ONE * inset * 2.0), false)
 		var center := size / 2
 		var radius := minf(size.x, size.y) / 2 - 5
 		# Dim background ring
@@ -40,6 +48,11 @@ class HealthRing extends Control:
 
 func _ready() -> void:
 	layer = 2
+	for key in ICON_PATHS:
+		if ResourceLoader.exists(ICON_PATHS[key]):
+			icons[key] = load(ICON_PATHS[key])
+		else:
+			push_warning("Teammate HUD: missing state icon " + ICON_PATHS[key])
 	column = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -49,10 +62,19 @@ func _ready() -> void:
 	column.grow_vertical = Control.GROW_DIRECTION_BOTH
 
 
+func _state_of(p:player) -> String:
+	if p.dead:
+		return "dead"
+	if p.trapped:
+		return "trapped"
+	if p.downed: # includes being carried
+		return "downed"
+	return "alive"
+
+
 func _process(_delta:float) -> void:
 	if !is_instance_valid(me) or me.get_parent() == null:
 		return
-	if !is_inside_tree(): return
 	
 	# Every other survivor in the match, in a stable order
 	var mates:Array = []
@@ -78,11 +100,10 @@ func _process(_delta:float) -> void:
 		var row:VBoxContainer = rows[id]
 		column.move_child(row, i)
 		
-		var hp := maxi(mate.health, 0)
+		var state := _state_of(mate)
 		var ring:HealthRing = row.get_child(1)
-		ring.value = hp / MAX_HEALTH
-		ring.label.text = str(hp)
-		row.modulate = Color(1, 1, 1, 0.4) if hp <= 0 else Color.WHITE # dim dead teammates
+		ring.icon = icons.get(state)
+		ring.value = 0.0 if state == "dead" else maxi(mate.health, 0) / MAX_HEALTH
 
 
 func _make_row(id:int) -> VBoxContainer:
@@ -101,8 +122,9 @@ func _make_row(id:int) -> VBoxContainer:
 	name_label.add_theme_constant_override("outline_size", 6)
 	row.add_child(name_label)
 	
-	# Ring below the name
+	# Ring with the state circle behind it, below the name
 	var ring := HealthRing.new()
+	ring.inset = ICON_INSET
 	ring.custom_minimum_size = Vector2(RING_SIZE, RING_SIZE)
 	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
