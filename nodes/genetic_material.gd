@@ -15,6 +15,7 @@ var net_basis := Basis()
 var has_net := false
 
 func _ready() -> void:
+	process_physics_priority = 100 # run after the players have moved this tick
 	add_to_group("genetic_material")
 	for c in [_host_grab, _host_drop, _set_carrier, _net_state]:
 		GDSync.expose_func(c)
@@ -22,6 +23,20 @@ func _ready() -> void:
 		# Only the host simulates; everyone else follows the host's state
 		freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 		freeze = true
+	for p in get_tree().get_nodes_in_group("plr"):
+		add_collision_exception_with(p)
+		
+func _ignore_all_players() -> void:
+	for n in get_tree().current_scene.find_children("*", "CharacterBody3D", true, false):
+		if n is player:
+			add_collision_exception_with(n)
+			
+func _carry_target(p:player) -> Transform3D:
+	var pos := p.global_position + p.global_transform.basis * carry_offset
+	return Transform3D(Basis.from_euler(Vector3(0.0, p.global_rotation.y, 0.0)), pos)
+
+func _i_am_carrier() -> bool:
+	return carrier_id != 0 and carrier_id == GDSync.get_client_id()
 
 func _find_player(id:int) -> player:
 	if id == 0:
@@ -62,13 +77,12 @@ func _set_carrier(id:int) -> void:
 	var old := _find_player(carrier_id)
 	if old != null:
 		old.carried_item = null
-		remove_collision_exception_with(old)
 	carrier_id = id
 	dropping = false
 	var p := _find_player(id)
 	if p != null:
 		p.carried_item = self
-		add_collision_exception_with(p) # the carried cube never pushes its carrier
+		add_collision_exception_with(p) # the cube never collides with its carrier
 	if GDSync.is_host():
 		if p != null:
 			freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
@@ -87,10 +101,21 @@ func _net_state(pos:Vector3, basis_in:Basis) -> void:
 	has_net = true
 
 func _physics_process(delta:float) -> void:
+	if Engine.get_physics_frames() % 60 == 0:
+		_ignore_all_players()
+		
+	# The carrier places the cube locally, so it never lags behind their own movement
+	if _i_am_carrier():
+		var me := _find_player(carrier_id)
+		if me != null:
+			global_transform = _carry_target(me)
+		if GDSync.is_host():
+			_host_step(delta)
+		return
 	if GDSync.is_host():
 		_host_step(delta)
 	elif has_net:
-		var t := clampf(delta * 15.0, 0.0, 1.0)
+		var t := clampf(delta * 25.0, 0.0, 1.0)
 		global_position = global_position.lerp(net_pos, t)
 		global_basis = global_basis.slerp(net_basis, t)
 
@@ -102,9 +127,12 @@ func _host_step(delta:float) -> void:
 				dropping = true
 				GDSync.call_func_all(_set_carrier, 0)
 		else:
-			var target := p.global_position + p.global_transform.basis * carry_offset
-			global_position = global_position.lerp(target, clampf(follow_speed * delta, 0.0, 1.0))
-			global_rotation = Vector3(0.0, p.global_rotation.y, 0.0)
+			var tf := _carry_target(p)
+			if GDSync.get_client_id() == carrier_id:
+				global_transform = tf # the host is the carrier: no smoothing
+			else:
+				global_position = global_position.lerp(tf.origin, clampf(follow_speed * delta, 0.0, 1.0))
+				global_basis = tf.basis
 	
 	send_cd -= delta
 	if send_cd <= 0.0:

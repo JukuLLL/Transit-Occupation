@@ -180,6 +180,7 @@ brute_scan={
 3d_render/layer_10="plr"
 3d_physics/layer_1="player"
 3d_physics/layer_2="Map"
+3d_physics/layer_20="genetic_material"
 3d_physics/layer_30="interact"
 3d_physics/layer_31="fling"
 3d_physics/layer_32="grapple_block"

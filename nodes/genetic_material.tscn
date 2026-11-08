@@ -13,6 +13,7 @@ size = Vector3(0.8, 0.8, 0.8)
 size = Vector3(0.8, 0.8, 0.8)
 
 [node name="GeneticMaterial" type="RigidBody3D" unique_id=95509322]
+collision_layer = 524288
 mass = 60.0
 continuous_cd = true
 script = ExtResource("1_xu626")
