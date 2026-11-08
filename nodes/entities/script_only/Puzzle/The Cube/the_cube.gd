@@ -13,6 +13,8 @@ var all_puzzles:Array[PuzzleBase]
 
 var finished_puzzle_count:int=0
 
+var cube_done := false
+
 signal cube_finished
 
 signal cube_puzzle_finished
@@ -28,18 +30,20 @@ func _ready() -> void:
 func get_all_puzzles():
 	for object:Node in get_children():
 		if object is PuzzleBase:
-			var puzzle:PuzzleBase=object
+			var puzzle:PuzzleBase = object
 			puzzle.puzzle_finished.connect(finish_puzzle)
 			all_puzzles.append(puzzle)
+	puzzle_count = all_puzzles.size() # always matches the real number of sides
+
+func finish_puzzle():
+	finished_puzzle_count += 1
+	cube_puzzle_finished.emit()
+	if finished_puzzle_count >= puzzle_count and !cube_done:
+		cube_done = true
+		finish_cube()
 
 func finish_cube():
 	print("DONE")
-	GDSync.emit_signal_remote_all(cube_finished)
-	
-func finish_puzzle():
-	finished_puzzle_count += 1
-	GDSync.sync_var(self,"finished_puzzle_count")
-	GDSync.emit_signal_remote_all(cube_puzzle_finished)
-	if finished_puzzle_count >= puzzle_count:
-		GDSync.call_func_all(finish_cube)
+	cube_finished.emit()
+	# Reward spawning goes here, host only (next step)
 	

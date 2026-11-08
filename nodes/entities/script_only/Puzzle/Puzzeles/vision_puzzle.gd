@@ -1,13 +1,94 @@
 class_name VisionPuzzle extends PuzzleBase
 
-# Called when the node enters the scene tree for the first time.
+@export var timer: Timer
+@export var lose: Timer
+@export var held_for:float = 5
+@export var spots: Node3D
+@export var vision: Decal
+@export var progress: Label3D
+@export var range_x:float = 0.5
+@export var range_y:float = 0.5
+
+var times:float = 0
+var lerper:float = 0.0
+var current_pos := Vector3.ZERO
+var lerp_start := Vector3.ZERO
+var start_vision_pos := Vector3.ZERO
+var last_held := 0
+var sync_cd := 0.0
+
 func _ready() -> void:
-	seed("satical".hash())
-	super() # runs PuzzleBase._ready (exposes the node and "finished")
+	super() # exposes the node and runs the base setup
 	start_vision_pos = vision.position
 	power_changed.connect(_on_power_changed)
-	GDSync.expose_var(self,"current_pos")
-	GDSync.expose_func(get_pos_in_list)
+	GDSync.expose_func(_show_state)
+
+func _process(_delta: float) -> void:
+	progress.text = str(times)
+
+func _i_am_worker() -> bool:
+	return worker != 0 and worker == GDSync.get_client_id()
+
+# ---- runs only on the machine of the player holding this side ----
+func _on_interactable_interacting_held(player_node_path: NodePath) -> void:
+	print("held, worker=", worker, " me=", GDSync.get_client_id())
+	if finished or !is_worker(player_node_path):
+		return
+	last_held = Time.get_ticks_msec()
+	if timer.is_stopped():
+		timer.start()
+		lose.start()
+		_retarget()
+	lerper = clampf(lerper + 0.01, 0.0, 1.0)
+	vision.position = lerp(lerp_start, current_pos, lerper)
+	sync_cd -= get_physics_process_delta_time()
+	if sync_cd <= 0.0: # share the decal position about 10 times a second
+		sync_cd = 0.1
+		GDSync.call_func_all(_show_state, vision.position, times)
+
+func _retarget() -> void:
+	lerp_start = vision.position
+	current_pos = start_vision_pos + Vector3(0, randf_range(-range_y, range_y), randf_range(-range_x, range_x))
+	lerper = 0.0
+
+func _on_timer_timeout() -> void:
+	if finished or !_i_am_worker():
+		timer.stop()
+		return
+	# Looking away from the decal stops the hold signals, so reset
+	if Time.get_ticks_msec() - last_held > 300:
+		_reset_progress()
+		return
+	times += 1
+	GDSync.call_func_all(_show_state, vision.position, times)
+	if times >= held_for:
+		timer.stop()
+		lose.stop()
+		finish_puzzle()
+
+func _on_lose_timeout() -> void:
+	if finished or !_i_am_worker():
+		return
+	times = 0
+	_retarget()
+	GDSync.call_func_all(_show_state, vision.position, times)
+
+func _on_interactable_interest_lost() -> void:
+	if !finished and _i_am_worker():
+		_reset_progress()
+
+func _reset_progress() -> void:
+	timer.stop()
+	lose.stop()
+	times = 0
+	lerper = 0.0
+	GDSync.call_func_all(_show_state, vision.position, 0.0)
+
+# ---- runs on every client ----
+func _show_state(pos:Vector3, t:float) -> void:
+	times = t
+	if !_i_am_worker():
+		create_tween().tween_property(vision, "position", pos, 0.1)
 
 func _on_power_changed(powered:bool) -> void:
 	if !powered and !finished:
@@ -15,86 +96,4 @@ func _on_power_changed(powered:bool) -> void:
 		lose.stop()
 		times = 0
 		lerper = 0.0
-
-@export var timer: Timer
-@export var lose: Timer
-@export var held_for:float=5
-@export var spots: Node3D
-@export var vision: Decal
-@export var progress: Label3D
-@export var range_x:float=0.5
-@export var range_y:float=0.5
-var times:float=0
-
-var current_pos:Vector3=Vector3.ZERO
-
-var lerp_Start:Vector3=Vector3.ZERO
-
-var start_vision_pos:Vector3=Vector3.ZERO
-
-func get_pos_in_list():
-	var marker:Vector3=start_vision_pos + Vector3(0,randf_range(-range_y,range_y),randf_range(-range_x,range_x))
-	current_pos = marker
-
-	pass # Replace with function body.
-
-func _on_timer_timeout() -> void:
-	if worker == 0:
-		timer.stop()
-		times = 0
-		lerper = 0.0
-		return
-	if !finished:
-		times += 1
-	if times >= held_for:
-		finish_puzzle()
-
-func _physics_process(delta: float) -> void:
-	grabble_lose -= 1
-	if grabble_lose < -1:
-		grabble_lose = 0
-		enabled = false
-
-func _on_interactable_interest_lost() -> void:
-	if !finished:
-		timer.stop()
-		times = 0
-		lerper = 0.0
-	pass # Replace with function body.
-
-func _process(delta: float) -> void:
-	progress.text = str(times)
-	
-var lerper:float=0.0
-
-func _on_interactable_interacting_held(player_node_path: NodePath) -> void:
-	if !enabled: return
-	if get_node(player_node_path).monster: return
-	print("connect")
-	if !finished:
-		if timer.is_stopped():
-			timer.start()
-			lose.start()
-		if lerp_Start == null or vision.position.is_equal_approx(current_pos):
-			lerp_Start = vision.position
-			GDSync.call_func_all(get_pos_in_list)
-			lerper = 0.0
-			
-		lerper = clampf(lerper,0,1)
-		vision.position = lerp(lerp_Start,current_pos,lerper)
-		lerper += 0.01
-	pass # Replace with function body.
-
-var grabble_lose = 0
-
-func grabbled():
-	grabble_lose = 500
-	enabled = true
-
-func _on_lose_timeout() -> void:
-	if !finished:
-		lerper = 0.0
-		lerp_Start = vision.position
-		GDSync.call_func_all(get_pos_in_list)
-		times = 0
-	pass # Replace with function body.
+		vision.position = start_vision_pos

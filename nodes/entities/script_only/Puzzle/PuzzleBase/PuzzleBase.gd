@@ -26,21 +26,22 @@ func _ready() -> void:
 	GDSync.expose_node(self)
 	GDSync.expose_var(self,"finished")
 	GDSync.client_left.connect(_on_client_left)
+	GDSync.expose_func(_host_finish)
+	GDSync.expose_func(_apply_finish)
 
+# Called on the worker's machine; the host confirms, then everyone finishes together
 func finish_puzzle():
 	if finished: return
+	_to_host(_host_finish, GDSync.get_client_id())
+
+func _host_finish(sender:int) -> void:
+	if finished or worker != sender: return
+	GDSync.call_func_all(_apply_finish)
+
+func _apply_finish() -> void:
+	if finished: return
 	finished = true
-	if synced:
-		GDSync.sync_var(self,"finished")
-		GDSync.emit_signal_remote_all(puzzle_finished)
-	else:
-		puzzle_finished.emit()
-		
-func start_puzzle():
-	if synced:
-		GDSync.emit_signal_remote_all(puzzle_started)
-	else:
-		puzzle_started.emit()
+	puzzle_finished.emit() # runs on every client
 		
 var worker:int = 0 # client id of the player powering this side, 0 = nobody
 

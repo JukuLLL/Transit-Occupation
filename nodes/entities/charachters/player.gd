@@ -733,9 +733,16 @@ func _update_rescue_ui(ratio:float):
 func find_socket_target() -> PowerSocket:
 	var best:PowerSocket = null
 	var best_d := socket_lock_sensitivity
-	for node in get_tree().get_nodes_in_group("power_socket"):
+	var group := get_tree().get_nodes_in_group("power_socket")
+	if Input.is_action_just_pressed("ping"):
+		print("sockets in group: ", group.size())
+	for node in group:
 		var sock := node as PowerSocket
-		if sock == null or sock.puzzle == null:
+		if sock == null:
+			if Input.is_action_just_pressed("ping"): print("not a PowerSocket: ", node)
+			continue
+		if sock.puzzle == null:
+			if Input.is_action_just_pressed("ping"): print("puzzle is null on ", sock.get_path())
 			continue
 		var why := ""
 		if sock.puzzle.finished:
@@ -772,6 +779,8 @@ var held_socket:PowerSocket
 @export var socket_max_distance := 6.0
 
 func socket_check():
+	if Input.is_action_just_pressed("right_click"):
+		print("RC pressed | monster=", monster, " downed=", downed, " rescue_target=", rescue_target, " lock=", socket_target, " held=", held_socket)
 	if is_instance_valid(held_socket):
 		var too_far := global_position.distance_to(held_socket.global_position) > socket_max_distance
 		if !Input.is_action_pressed("right_click") or downed or too_far:
