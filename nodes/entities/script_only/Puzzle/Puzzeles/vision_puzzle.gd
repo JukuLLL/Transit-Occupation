@@ -69,7 +69,7 @@ func _on_timer_timeout() -> void:
 func _on_lose_timeout() -> void:
 	if finished or !_i_am_worker():
 		return
-	times = 0
+	# Only move the decal to a new spot, progress is NOT reset here
 	_retarget()
 	GDSync.call_func_all(_show_state, vision.position, times)
 
