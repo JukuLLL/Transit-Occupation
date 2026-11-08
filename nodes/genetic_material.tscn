@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://h65ha2a4llp4"]
+
+[ext_resource type="Script" uid="uid://cn4lo8etcg7en" path="res://nodes/genetic_material.gd" id="1_xu626"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dhj4k"]
+albedo_color = Color(0.21959275, 0.19241792, 0.11906912, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kdgf2"]
+material = SubResource("StandardMaterial3D_dhj4k")
+size = Vector3(0.8, 0.8, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kdgf2"]
+size = Vector3(0.8, 0.8, 0.8)
+
+[node name="GeneticMaterial" type="RigidBody3D" unique_id=95509322]
+mass = 60.0
+continuous_cd = true
+script = ExtResource("1_xu626")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1183486694]
+mesh = SubResource("BoxMesh_kdgf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=815126243]
+shape = SubResource("BoxShape3D_kdgf2")

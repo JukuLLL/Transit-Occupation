@@ -34,6 +34,13 @@ var teammate_hud:Node
 @export var grapple_sensitivity := 300
 @export var grapple_distance:float=1.0
 
+@export var grab_time := 0.6 # seconds to hold right-click to pick it up
+@export var grab_reach := 3.0
+@export var carry_speed_mult := 0.55
+var carried_item:Node # typed as Node on purpose, to avoid error
+var rc_consumed := false
+var grab_hold := 0.0
+
 @export var monster:bool=false
 @export var monster_hold_spot:Marker3D
 @export var grav_area:CollisionShape3D
@@ -288,7 +295,7 @@ func movement(delta):
 	if plr_head:
 		plr_head.update_dash(dash_cooldown, DASH_COOLDOWN)
 	
-	if kit == null and Input.is_action_just_pressed("dash"):
+	if kit == null and carried_item == null and Input.is_action_just_pressed("dash"):
 		dash()
 		
 	jump_lockout = maxf(jump_lockout - delta, 0.0)
@@ -383,6 +390,8 @@ func _physics_process(delta):
 	$Label2.text = str(grappling_target)
 	
 	speed_mult = kit.speed_multiplier() if kit != null and kit.ready_done else 1.0
+	if carried_item != null:
+		speed_mult *= carry_speed_mult
 	
 	movement(delta)
 	
@@ -391,11 +400,14 @@ func _physics_process(delta):
 	if grapple_ray.is_colliding():
 		grappling_target = grapple_ray.get_collider()
 	
-	rescue_check(delta)
-	socket_check()
+	var busy := carry_check(delta)
+	if !busy:
+		rescue_check(delta)
+		socket_check()
 	grappling_hook(delta)
-	update_socket_lock()
-	update_rescue_lock()
+	if carried_item == null:
+		update_socket_lock()
+		update_rescue_lock()
 	if monster:
 		if kit != null:
 			if kit.ready_done:
@@ -405,7 +417,11 @@ func _physics_process(delta):
 			if Input.is_action_just_pressed("left_click"):
 				attack()
 	
-	interact_check()
+	# While carrying, nothing else on the map can be interacted with
+	if carried_item == null:
+		interact_check()
+	else:
+		plr_head.allow_interact("", false)
 	if kit != null and kit.ready_done:
 		kit.before_slide(delta)
 	move_and_slide()
@@ -643,7 +659,7 @@ func grappling_hook(_delta:float):
 			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
 				closest = spot
 		set_grapple_target(closest.global_position)
-		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket) and rescue_target == null
+		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket) and rescue_target == null and carried_item == null and !rc_consumed and grab_hold <= 0.0
 		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
 			if !closest.allow_pull:
 				pass
@@ -1033,4 +1049,60 @@ func is_alive_state() -> bool:
 
 func has_won() -> bool:
 	return !monster and escaped and !dead
+#endregion
+
+#region Carrying
+func find_grab_target() -> Node3D:
+	var cam := first_person_camera
+	var fwd := -cam.global_transform.basis.z
+	var best:Node3D = null
+	var best_dot := 0.5
+	for n in get_tree().get_nodes_in_group("genetic_material"):
+		var item = n
+		if item.carrier_id != 0:
+			continue
+		var to:Vector3 = item.global_position - cam.global_position
+		if to.length() > grab_reach:
+			continue
+		var d := fwd.dot(to.normalized())
+		if d > best_dot:
+			best_dot = d
+			best = item
+	return best
+
+# Returns true while right-click is busy with the cube, so rescue and sockets skip this frame
+func carry_check(delta:float) -> bool:
+	if !Input.is_action_pressed("right_click"):
+		rc_consumed = false
+		grab_hold = 0.0
+	if monster:
+		return false
+	
+	if carried_item != null:
+		if Input.is_action_just_pressed("right_click"):
+			rc_consumed = true
+			carried_item.request_drop()
+		return true
+	if rc_consumed:
+		return true
+	
+	var item := find_grab_target()
+	if grab_hold > 0.0:
+		if item == null or !Input.is_action_pressed("right_click"):
+			grab_hold = 0.0
+			cancel_rescue() # also hides the ring
+			return false
+		grab_hold += delta
+		_update_rescue_ui(grab_hold / grab_time)
+		if grab_hold >= grab_time:
+			grab_hold = 0.0
+			rc_consumed = true
+			cancel_rescue()
+			item.request_grab()
+		return true
+	
+	if item != null and Input.is_action_just_pressed("right_click"):
+		grab_hold = delta
+		return true
+	return false
 #endregion

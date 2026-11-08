@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c7fyqkmwwi0a2"]
 
 [ext_resource type="Script" uid="uid://by6a0ivcqrvwt" path="res://nodes/entities/script_only/Puzzle/The Cube/the_cube.gd" id="1_drbyp"]
+[ext_resource type="PackedScene" uid="uid://h65ha2a4llp4" path="res://nodes/genetic_material.tscn" id="2_a5sqb"]
 [ext_resource type="Script" uid="uid://xe2loijthdk6" path="res://addons/GD-Sync/Scripts/Types/NodeInstantiator.gd" id="2_m4na5"]
 [ext_resource type="PackedScene" uid="uid://dkl0dsi0nkruo" path="res://models/world/Puzzles/PuzzleCube.glb" id="3_4i3qg"]
 [ext_resource type="Texture2D" uid="uid://uuqi3sgjqmc" path="res://textures/puzzle/alien_metal.jpg" id="4_cd6ls"]
@@ -116,6 +117,7 @@ shader_parameter/roughness = 0.249999994412
 
 [node name="TheCube" type="Node3D" unique_id=1403445802 node_paths=PackedStringArray("Output_location", "Item_create")]
 script = ExtResource("1_drbyp")
+Output_item = ExtResource("2_a5sqb")
 Output_location = NodePath("output")
 Item_create = NodePath("ItemMaker")
 
@@ -129,6 +131,7 @@ excluded_properties = PackedStringArray()
 metadata/_custom_type_script = "uid://xe2loijthdk6"
 
 [node name="output" type="Marker3D" parent="." unique_id=1594647574]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.024207, 0, -5.4914637)
 
 [node name="PuzzleCube" parent="." unique_id=1663174974 instance=ExtResource("3_4i3qg")]
 transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)

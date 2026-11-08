@@ -45,5 +45,13 @@ func finish_puzzle():
 func finish_cube():
 	print("DONE")
 	cube_finished.emit()
-	# Reward spawning goes here, host only (next step)
-	
+	_spawn_reward()
+
+func _spawn_reward() -> void:
+	if Output_item == null or Output_location == null:
+		push_warning("TheCube: Output Item or Output Location is not set")
+		return
+	var item := Output_item.instantiate() as Node3D
+	item.name = "GeneticMaterial"
+	add_child(item)
+	item.global_position = Output_location.global_position
