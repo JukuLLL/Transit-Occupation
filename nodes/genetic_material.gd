@@ -5,6 +5,7 @@ class_name GeneticMaterial extends RigidBody3D
 @export var send_rate := 15.0
 @export var max_grab_distance := 5.0
 
+var consumed := false # set by the chamber so one cube can only be inserted once
 var carrier_id := 0
 var dropping := false
 var send_cd := 0.0

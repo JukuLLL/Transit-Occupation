@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cdkews6l8lqkq"]
+
+[ext_resource type="Script" uid="uid://bxxqvtn3uiyhh" path="res://nodes/algorithm_chamber.gd" id="1_ccs1e"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gp1v6"]
+size = Vector3(5.5, 4, 5.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gp1v6"]
+size = Vector3(3, 6, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kdgf2"]
+size = Vector3(3, 6, 3)
+
+[node name="AlgorithmChamber" type="Area3D" unique_id=1281482223]
+script = ExtResource("1_ccs1e")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1224464052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+shape = SubResource("BoxShape3D_gp1v6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1964553173]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+mesh = SubResource("BoxMesh_gp1v6")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1691102593]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=959725927]
+shape = SubResource("BoxShape3D_kdgf2")
