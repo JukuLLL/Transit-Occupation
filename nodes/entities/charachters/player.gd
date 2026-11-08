@@ -299,13 +299,13 @@ func movement(delta):
 		dash()
 		
 	jump_lockout = maxf(jump_lockout - delta, 0.0)
-	if !is_on_floor() and Input.is_action_just_pressed("jump"):
+	if !is_on_floor() and carried_item == null and Input.is_action_just_pressed("jump"):
 		jump_lockout = jump_spam_penalty
 		
 	if is_on_floor():
 		
 		floor_counter += 1
-		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0 and !(kit != null and kit.has_method("blocks_jump") and kit.blocks_jump()):
+		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0 and carried_item == null and !(kit != null and kit.has_method("blocks_jump") and kit.blocks_jump()):
 			var was_chained: bool = bhop
 			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
 			var horizontal_speed := Vector2(velocity.x, velocity.z).length()
@@ -390,8 +390,6 @@ func _physics_process(delta):
 	$Label2.text = str(grappling_target)
 	
 	speed_mult = kit.speed_multiplier() if kit != null and kit.ready_done else 1.0
-	if carried_item != null:
-		speed_mult *= carry_speed_mult
 	
 	movement(delta)
 	
