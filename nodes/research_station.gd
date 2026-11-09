@@ -3,10 +3,11 @@ class_name ResearchStation extends Node3D
 signal objective_started
 signal objective_completed
 
+@export var escape_zones:Array[EscapeZone] # drag your escape zones here
 @export var pipe:Node3D
 @export var travel := 3.0                 # how far the pipe starts above its final position (m)
 # Progress per second, indexed by number of pullers (0 to 4): 125 s, 50 s, 28 s, 17 s
-@export var rates:Array[float] = [0.0, 0.008, 0.02, 0.036, 0.06]
+@export var rates:Array[float] = [0.0, 0.0115, 0.025, 0.04, 0.065]
 @export var accel := 0.05                 # how quickly the rate rises
 @export var decel := 0.4                  # how quickly it falls when pulling stops
 @export var objective_text := "Pull down the pipe."
@@ -116,6 +117,9 @@ func _complete() -> void:
 	tw.tween_property(label, "modulate:a", 0.0, 1.5).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(label.hide)
 	objective_completed.emit()
+	for z in escape_zones:
+		if is_instance_valid(z):
+			z.set_active(true)
 
 # ---------- Objective text ----------
 func _build_ui() -> void:
