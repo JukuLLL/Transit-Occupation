@@ -1,0 +1,127 @@
+[gd_scene format=3 uid="uid://buca1sb3nwbk8"]
+
+[ext_resource type="Script" uid="uid://uoacdojdflr2" path="res://nodes/research_station.gd" id="1_vlyub"]
+[ext_resource type="Script" uid="uid://d4fr3dhmxcaex" path="res://nodes/entities/script_only/Puzzle/PuzzleBase/PuzzleBase.gd" id="2_e5elq"]
+[ext_resource type="Script" uid="uid://vgju0euylbbl" path="res://nodes/power_socket.gd" id="3_lk3jm"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kdgf2"]
+top_radius = 1.2
+bottom_radius = 1.2
+height = 1.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_kdgf2"]
+radius = 1.2
+is_hemisphere = true
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_kdgf2"]
+height = 2.2
+radius = 1.2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_gp1v6"]
+top_radius = 0.8
+bottom_radius = 0.8
+height = 8.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dhj4k"]
+top_radius = 0.02
+bottom_radius = 0.02
+height = 1.2
+
+[sub_resource type="BoxMesh" id="BoxMesh_kdgf2"]
+size = Vector3(0.3, 0.3, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kdgf2"]
+size = Vector3(0.3, 0.3, 0.3)
+
+[node name="ResearchStation" type="Node3D" unique_id=1491418162 node_paths=PackedStringArray("pipe")]
+script = ExtResource("1_vlyub")
+pipe = NodePath("Pipe")
+
+[node name="Base" type="StaticBody3D" parent="." unique_id=936113046]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Base" unique_id=1163606107]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("CylinderMesh_kdgf2")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Base" unique_id=1974541916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4563057, 0)
+mesh = SubResource("SphereMesh_kdgf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Base" unique_id=1442002509]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0044488907, 1.0989332, 0)
+shape = SubResource("CylinderShape3D_kdgf2")
+
+[node name="Pipe" type="Node3D" parent="." unique_id=1177632811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004, 2.5234997, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe" unique_id=8504639]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+mesh = SubResource("CylinderMesh_gp1v6")
+
+[node name="Pole1" type="Node3D" parent="Pipe" unique_id=1437798193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.9539695)
+script = ExtResource("2_e5elq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole1" unique_id=1316145010]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0, 0, -0.15856278)
+mesh = SubResource("CylinderMesh_dhj4k")
+
+[node name="PowerSocket" type="Area3D" parent="Pipe/Pole1" unique_id=752106131]
+script = ExtResource("3_lk3jm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole1/PowerSocket" unique_id=919490800]
+mesh = SubResource("BoxMesh_kdgf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pipe/Pole1/PowerSocket" unique_id=2008040147]
+shape = SubResource("BoxShape3D_kdgf2")
+
+[node name="Pole2" type="Node3D" parent="Pipe" unique_id=1190263571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9891011, 0, 0)
+script = ExtResource("2_e5elq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole2" unique_id=2132625160]
+transform = Transform3D(1.9106855e-15, -4.371139e-08, -1, -1, -4.371139e-08, 0, -4.371139e-08, 1, -4.371139e-08, 0.19637072, 0, -0.014248878)
+mesh = SubResource("CylinderMesh_dhj4k")
+
+[node name="PowerSocket" type="Area3D" parent="Pipe/Pole2" unique_id=1316420470]
+script = ExtResource("3_lk3jm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole2/PowerSocket" unique_id=1451552985]
+mesh = SubResource("BoxMesh_kdgf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pipe/Pole2/PowerSocket" unique_id=597001371]
+shape = SubResource("BoxShape3D_kdgf2")
+
+[node name="Pole3" type="Node3D" parent="Pipe" unique_id=391213212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.95777684)
+script = ExtResource("2_e5elq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole3" unique_id=433836726]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0.15024167)
+mesh = SubResource("CylinderMesh_dhj4k")
+
+[node name="PowerSocket" type="Area3D" parent="Pipe/Pole3" unique_id=1410470831]
+script = ExtResource("3_lk3jm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole3/PowerSocket" unique_id=1004058304]
+mesh = SubResource("BoxMesh_kdgf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pipe/Pole3/PowerSocket" unique_id=1801133913]
+shape = SubResource("BoxShape3D_kdgf2")
+
+[node name="Pole4" type="Node3D" parent="Pipe" unique_id=706570945]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9201152, 0, 0)
+script = ExtResource("2_e5elq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole4" unique_id=1516459194]
+transform = Transform3D(1.9106855e-15, -4.371139e-08, -1, -1, -4.371139e-08, 0, -4.371139e-08, 1, -4.371139e-08, -0.12758589, 0, -0.014248878)
+mesh = SubResource("CylinderMesh_dhj4k")
+
+[node name="PowerSocket" type="Area3D" parent="Pipe/Pole4" unique_id=989822346]
+script = ExtResource("3_lk3jm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pipe/Pole4/PowerSocket" unique_id=746669672]
+mesh = SubResource("BoxMesh_kdgf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pipe/Pole4/PowerSocket" unique_id=1572185604]
+shape = SubResource("BoxShape3D_kdgf2")

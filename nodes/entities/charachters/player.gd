@@ -797,7 +797,8 @@ func socket_check():
 		print("RC pressed | monster=", monster, " downed=", downed, " rescue_target=", rescue_target, " lock=", socket_target, " held=", held_socket)
 	if is_instance_valid(held_socket):
 		var too_far := global_position.distance_to(held_socket.global_position) > socket_max_distance
-		if !Input.is_action_pressed("right_click") or downed or too_far:
+		var locked:bool = held_socket.puzzle == null or held_socket.puzzle.finished
+		if !Input.is_action_pressed("right_click") or downed or too_far or locked:
 			release_socket()
 		return
 	held_socket = null
