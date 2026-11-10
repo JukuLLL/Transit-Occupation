@@ -29,6 +29,7 @@ var label:Label
 var local_player:player
 
 func _ready() -> void:
+	add_to_group("research_station")
 	GDSync.expose_func(_net_progress_set)
 	GDSync.expose_func(_complete)
 	for n in pipe.find_children("*", "", true, false):

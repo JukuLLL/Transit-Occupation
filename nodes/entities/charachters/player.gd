@@ -17,6 +17,8 @@ var downed:bool = false
 var picked_up:bool = false
 var downed_interact:interactable
 
+var indicators:Node
+
 @export var ping_lifetime:float = 7.0
 @export var ping_max_distance:float = 300.0
 var current_ping:PingMarker
@@ -171,6 +173,7 @@ func owner_changed(id:int):
 			_create_teammate_hud()
 			first_person_camera.compositor = load("res://shaders/comp/plr.res")
 		print(GDSync.player_get_data(GDSync.get_gdsync_owner(self),"TEAM"))
+		_create_indicators()
 	pass
 	
 func _create_teammate_hud():
@@ -178,6 +181,12 @@ func _create_teammate_hud():
 	teammate_hud = load("res://nodes/teammate_hud.gd").new()
 	teammate_hud.me = self
 	add_child(teammate_hud)
+	
+func _create_indicators():
+	if indicators != null: return
+	indicators = load("res://nodes/indicator_system.gd").new()
+	indicators.viewer = self
+	add_child(indicators)
 	
 func _init() -> void:
 	dash_cooldown = 0
@@ -626,6 +635,8 @@ func downed_check():
 		downed_interact = null
 
 func death():
+	if is_instance_valid(indicators):
+		indicators.queue_free()
 	escaped = false
 	dead = true
 	_announce_death()
