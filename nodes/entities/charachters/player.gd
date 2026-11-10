@@ -1,6 +1,19 @@
 class_name player extends CharacterBody3D
 
 #region Variables
+@export var tight_speed_mult := 0.4      # walking speed inside a tight space
+@export var crouch_height_ratio := 0.5   # body height while squeezing through
+@export var crouch_anim := "crouch"      # optional AnimationPlayer animation
+var tight_count := 0                     # how many tight spaces the monster is inside
+var crouched := false
+var _capsule:CapsuleShape3D
+var _body_shape:CollisionShape3D
+var _stand_height := 0.0
+var _shape_stand_y := 0.0
+var _head_stand_y := 0.0
+var _mesh_stand_y := 0.0
+var _mesh_stand_scale_y := 1.0
+var _crouch_tween:Tween
 var _death_announced := false
 var escaped := false
 var _escape_sent := false
@@ -319,7 +332,7 @@ func movement(delta):
 	if is_on_floor():
 		
 		floor_counter += 1
-		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0 and carried_item == null and !(kit != null and kit.has_method("blocks_jump") and kit.blocks_jump()):
+		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0 and tight_count == 0 and carried_item == null and !(kit != null and kit.has_method("blocks_jump") and kit.blocks_jump()):
 			var was_chained: bool = bhop
 			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
 			var horizontal_speed := Vector2(velocity.x, velocity.z).length()
@@ -392,6 +405,12 @@ func movement(delta):
 				velocity.z = dash_dir.z * s
 				
 	dash_carry = maxf(dash_carry - delta, 0.0)
+	
+	# Leftover momentum can't carry the monster through at full speed
+	if tight_count > 0:
+		var flat := Vector2(velocity.x, velocity.z).limit_length(eff_speed)
+		velocity.x = flat.x
+		velocity.z = flat.y
 				
 				
 func dash():
@@ -433,6 +452,8 @@ func _physics_process(delta):
 	$Label2.text = str(grappling_target)
 	
 	speed_mult = kit.speed_multiplier() if kit != null and kit.ready_done else 1.0
+	if tight_count > 0:
+		speed_mult *= tight_speed_mult
 	
 	movement(delta)
 	
@@ -1152,4 +1173,64 @@ func carry_check(delta:float) -> bool:
 		grab_hold = delta
 		return true
 	return false
+#endregion
+
+#region Tight space
+# Called by TightSpace volumes. A counter lets overlapping volumes work together.
+func tight_space_enter() -> void:
+	if !monster:
+		return
+	tight_count += 1
+	if tight_count == 1:
+		_set_crouch(true)
+
+func tight_space_exit() -> void:
+	if !monster:
+		return
+	tight_count = maxi(tight_count - 1, 0)
+	if tight_count == 0:
+		_set_crouch(false)
+
+func _set_crouch(on:bool) -> void:
+	if on == crouched:
+		return
+	crouched = on
+	if _capsule == null:
+		for c in get_children():
+			if c is CollisionShape3D and c.shape is CapsuleShape3D:
+				_body_shape = c
+				_capsule = c.shape.duplicate() # never edit a resource shared with other players
+				c.shape = _capsule
+				_stand_height = _capsule.height
+				_shape_stand_y = c.position.y
+				break
+		if is_instance_valid(plr_head):
+			_head_stand_y = plr_head.position.y
+		if player_mesh != null:
+			_mesh_stand_y = player_mesh.position.y
+			_mesh_stand_scale_y = player_mesh.scale.y
+	if _capsule == null:
+		return
+	
+	var new_h := maxf(_stand_height * crouch_height_ratio if on else _stand_height, _capsule.radius * 2.0 + 0.01)
+	var drop := _stand_height - new_h
+	_capsule.height = new_h
+	_body_shape.position.y = _shape_stand_y - drop / 2.0 # feet stay on the floor
+	
+	if _crouch_tween:
+		_crouch_tween.kill()
+	_crouch_tween = create_tween().set_parallel(true)
+	if is_instance_valid(plr_head):
+		_crouch_tween.tween_property(plr_head, "position:y", _head_stand_y - drop, 0.15)
+	if player_mesh != null:
+		var k := new_h / _stand_height
+		_crouch_tween.tween_property(player_mesh, "scale:y", _mesh_stand_scale_y * k, 0.15)
+		_crouch_tween.tween_property(player_mesh, "position:y", _mesh_stand_y - drop / 2.0, 0.15)
+	
+	var ap := find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if ap != null and ap.has_animation(crouch_anim):
+		if on:
+			ap.play(crouch_anim)
+		else:
+			ap.play_backwards(crouch_anim)
 #endregion

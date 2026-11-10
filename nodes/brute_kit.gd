@@ -184,6 +184,8 @@ func _attack_result(hit:bool) -> void:
 # Dash
 # =====================================================================
 func _try_dash() -> void:
+	if plr.tight_count > 0:
+		return
 	if !plr.is_on_floor():
 		return
 	if dash_cd > 0.0:
@@ -230,6 +232,8 @@ func _dash_denied(remaining:float) -> void:
 		_end_dash()
 
 func before_slide(delta:float) -> void:
+	if dashing and plr.tight_count > 0:
+		_end_dash()
 	if !dashing:
 		return
 	dash_left -= delta
