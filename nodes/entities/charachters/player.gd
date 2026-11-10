@@ -64,11 +64,12 @@ var dash_dir := Vector3.ZERO
 const DASH_COOLDOWN := 4.25 # seconds
 @export var dash_speed = 10
 var dash_cooldown:float = 0.0
-
+@export var bhop_decay := 1.2 # speed lost per second while above running speed during a b-hop
 var first_person := true
 
 
-
+var dash_carry := 0.0
+@export var dash_carry_time := 2.0 # seconds the dash surplus takes to fade
 
 # JUMP
 @export var gravity :Vector3= Vector3(0,0.4,0)
@@ -330,8 +331,9 @@ func movement(delta):
 			if bhop_combo != 0:
 				set_bhop_combo(0)
 		if input:
-			velocity.x = move_toward(velocity.x,direction.x * eff_speed,delta * 40)
-			velocity.z = move_toward(velocity.z,direction.z * eff_speed,delta * 40)
+			var rate := 3.0 if dash_carry > 0.0 else 40.0
+			velocity.x = move_toward(velocity.x,direction.x * eff_speed,delta * rate)
+			velocity.z = move_toward(velocity.z,direction.z * eff_speed,delta * rate)
 		else:
 			if !bhop:
 				velocity.x -= velocity.x / (friction / 2)
@@ -355,16 +357,33 @@ func movement(delta):
 				velocity.x -= velocity.x / 10
 				velocity.z -= velocity.z / 10
 				
-	# Timed dash: hold a forward speed that eases out over the duration
+	# B-hop momentum slowly fades back to normal running speed
+	if bhop and dash_left <= 0.0:
+		var base := sprint_speed * speed_mult
+		var flat := Vector2(velocity.x, velocity.z)
+		var spd := flat.length()
+		if spd > base:
+			var new_spd := maxf(spd - bhop_decay * delta, base)
+			flat = flat * (new_spd / spd)
+			velocity.x = flat.x
+			velocity.z = flat.y
+				
 	if dash_left > 0.0:
 		dash_left -= delta
+		dash_carry = dash_carry_time
 		if is_on_wall() or downed or trapped:
 			dash_left = 0.0
 		else:
-			var t := clampf(dash_left / dash_duration, 0.0, 1.0)
-			var s := dash_move_speed * lerpf(0.6, 1.0, t)
-			velocity.x = dash_dir.x * s
-			velocity.z = dash_dir.z * s
+			bhop = true          # keep the b-hop chain alive during the dash
+			floor_counter = 0    # and give a fresh hop window when the dash ends
+			var s := dash_move_speed
+			var cur := Vector2(velocity.x, velocity.z)
+			if cur.length() < s:
+				velocity.x = dash_dir.x * s
+				velocity.z = dash_dir.z * s
+				
+	dash_carry = maxf(dash_carry - delta, 0.0)
+				
 				
 func dash():
 	if dash_cooldown > 0.0:
