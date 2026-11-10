@@ -57,6 +57,10 @@ var grab_hold := 0.0
 var speed_mult := 1.0
 
 # DASH
+@export var dash_duration := 1.5     # seconds the dash lasts
+@export var dash_move_speed := 14.0  # horizontal speed at the start of the dash
+var dash_left := 0.0
+var dash_dir := Vector3.ZERO
 const DASH_COOLDOWN := 4.25 # seconds
 @export var dash_speed = 10
 var dash_cooldown:float = 0.0
@@ -351,16 +355,27 @@ func movement(delta):
 				velocity.x -= velocity.x / 10
 				velocity.z -= velocity.z / 10
 				
+	# Timed dash: hold a forward speed that eases out over the duration
+	if dash_left > 0.0:
+		dash_left -= delta
+		if is_on_wall() or downed or trapped:
+			dash_left = 0.0
+		else:
+			var t := clampf(dash_left / dash_duration, 0.0, 1.0)
+			var s := dash_move_speed * lerpf(0.6, 1.0, t)
+			velocity.x = dash_dir.x * s
+			velocity.z = dash_dir.z * s
+				
 func dash():
 	if dash_cooldown > 0.0:
 		return
 	bhop = true
 	floor_counter = 0
 	dash_cooldown = DASH_COOLDOWN
-	var push:Vector3=transform.basis * Vector3.FORWARD
-	velocity += push * dash_speed
-	
-	pass
+	var f := -transform.basis.z
+	f.y = 0.0
+	dash_dir = f.normalized()
+	dash_left = dash_duration
 #endregion
 
 func _physics_process(delta):
@@ -478,7 +493,9 @@ func sync_pick_up(on:bool, monster_path:NodePath = NodePath("")):
 				remove_collision_exception_with(plr)
 
 # Runs on every client (called from Nest.sync_trap)
+# Runs on every client (called from Nest.sync_trap)
 func set_trapped(n:Nest) -> void:
+	dash_left = 0.0
 	trapped = true
 	downed = false
 	picked_up = false
@@ -549,6 +566,7 @@ func hit_by_damager(damage:int=1,damage_cause:String="NULL",force:Vector3=Vector
 		GDSync.call_func_all(down_player)
 
 func down_player():
+	dash_left = 0.0
 	if monster or downed or trapped or dead: return
 	downed = true # note: no life is lost here any more
 	velocity = Vector3.ZERO
