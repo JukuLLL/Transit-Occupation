@@ -5,6 +5,8 @@ class_name AlgorithmChamber extends Area3D
 @export var fade_time := 1.5
 
 # Shared by every chamber in the map
+const SOUND_DIR := "res://Sounds/"
+static var sounds:Array = [] # GM1..GM6, loaded once
 static var inserted := 0
 static var pending := 0 # host only: insertions announced but not yet applied
 static var done := false
@@ -15,6 +17,25 @@ var local_player:player
 
 signal progress_changed(count:int, total:int)
 signal completed
+
+func _play_progress_sound(count:int) -> void:
+	# Survivors hear GM1 to GM5, everyone (monster included) hears GM6
+	if !is_instance_valid(local_player):
+		local_player = get_tree().current_scene.find_child(str(GDSync.get_client_id()), true, false) as player
+	var is_monster := is_instance_valid(local_player) and local_player.monster
+	if is_monster and count < required:
+		return
+	if sounds.is_empty():
+		for i in range(1, required + 1):
+			sounds.append(load(SOUND_DIR + "GM%d.wav" % i))
+	var stream:AudioStream = sounds[count - 1] if count - 1 < sounds.size() else null
+	if stream == null:
+		return
+	var sfx := AudioStreamPlayer.new()
+	sfx.stream = stream
+	get_tree().current_scene.add_child(sfx)
+	sfx.finished.connect(sfx.queue_free)
+	sfx.play()
 
 func _ready() -> void:
 	add_to_group("algorithm_chamber")
@@ -62,6 +83,7 @@ func _insert(player_id:int) -> void:
 	inserted += 1
 	_update_ui()
 	progress_changed.emit(inserted, required)
+	_play_progress_sound(inserted)
 	if inserted >= required and !done:
 		done = true
 		completed.emit()
