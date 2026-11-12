@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://i0bkmixv8w0x" path="res://textures/puzzle/alien_metal_normal.jpg" id="8_b7mo7"]
 [ext_resource type="PackedScene" uid="uid://chwxuf41gpcab" path="res://nodes/entities/script_only/Puzzle/Puzzeles/VisionPuzzle.scn" id="8_pnsge"]
 [ext_resource type="PackedScene" uid="uid://bj3itbpnkvga2" path="res://nodes/entities/script_only/Puzzle/Puzzeles/InvadersPuzzle.scn" id="10_t1wxr"]
+[ext_resource type="PackedScene" uid="uid://djn8dh6w0uxff" path="res://nodes/entities/script_only/Puzzle/Puzzeles/MemoryPuzzle.scn" id="11_b7mo7"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_iyxlp"]
 render_priority = 0
@@ -150,10 +151,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62016463, -0.6756076, -3.60
 [node name="InvadersPuzzle" parent="." unique_id=1461197999 instance=ExtResource("10_t1wxr")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.53695464, -0.6637368, -4.7900248)
 
-[node name="VisionPuzzle3" parent="." unique_id=75376275 instance=ExtResource("8_pnsge")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.722685, -0.6756076, -3.6009865)
-
 [node name="VisionPuzzle4" parent="." unique_id=333676090 instance=ExtResource("8_pnsge")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.5636207, -0.6756076, -2.447816)
+
+[node name="MemoryPuzzle" parent="." unique_id=1460416413 instance=ExtResource("11_b7mo7")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.7241895, -0.66205144, -3.6257167)
 
 [editable path="PuzzleCube"]

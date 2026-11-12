@@ -60,7 +60,7 @@ var right_t := -10000
 var send_cd := 0.0
 
 func _ready() -> void:
-	super() # keep: sets up claiming and the host-confirmed finish
+	super() 
 	GDSync.expose_func(_show_state)
 	_build_board()
 	power_changed.connect(_on_power_changed)
@@ -70,7 +70,6 @@ func _ready() -> void:
 func _i_am_worker() -> bool:
 	return worker != 0 and worker == GDSync.get_client_id()
 
-# ------------------------------------------------------------ building
 func _build_board() -> void:
 	board = Node3D.new()
 	board.rotation_degrees.y = board_yaw
@@ -113,11 +112,10 @@ func _blob(radius:float, color:Color) -> MeshInstance3D:
 	m.material_override = mat
 	return m
 
-# kind: 0 = shoot, 1 = move left, 2 = move right
 func _make_button(x:float, text:String, kind:int) -> void:
 	var b := interactable.new()
-	b.synced = false # handled on the presser's own machine
-	b.hold = kind != 0 # movement buttons count while held
+	b.synced = false 
+	b.hold = kind != 0 
 	b.position = Vector3(x, -1.45, 0.03)
 	board.add_child(b)
 	if kind == 0:
@@ -158,7 +156,6 @@ func _make_button(x:float, text:String, kind:int) -> void:
 		l.no_depth_test = true
 		b.add_child(l)
 
-# ------------------------------------------------------------ input (worker's machine)
 func _on_move(path:NodePath, dir:int) -> void:
 	if !running or !is_worker(path):
 		return
@@ -171,16 +168,15 @@ func _on_shoot(path:NodePath) -> void:
 	if !running or finished or fail_left > 0.0 or cd > 0.0 or !is_worker(path):
 		return
 	if !Input.is_action_just_pressed("left_click"):
-		return # sweeping over the button with the mouse held does not fire
+		return 
 	cd = shoot_cooldown
 	pb.append(Vector2(ship_x, SHIP_Y + 0.12))
 
-# ------------------------------------------------------------ session
 func _on_power_changed(powered:bool) -> void:
 	running = false
 	if finished:
 		return
-	_reset_local() # everyone clears the board when someone starts or leaves
+	_reset_local() 
 	if powered and _i_am_worker():
 		running = true
 
@@ -207,7 +203,6 @@ func _on_finished_local() -> void:
 	eb = PackedVector2Array()
 	_render()
 
-# ------------------------------------------------------------ simulation (worker only)
 func _physics_process(delta:float) -> void:
 	if !running or finished or !_i_am_worker():
 		return
@@ -215,7 +210,7 @@ func _physics_process(delta:float) -> void:
 	if fail_left > 0.0:
 		fail_left -= delta
 		if fail_left <= 0.0:
-			_reset_local() # the puzzle resets after being hit
+			_reset_local() 
 		_broadcast(delta)
 		_render()
 		return
@@ -230,7 +225,7 @@ func _physics_process(delta:float) -> void:
 	ship_x = clampf(ship_x + dir * SHIP_SPEED * delta, -FIELD_HALF_W, FIELD_HALF_W)
 	cd = maxf(cd - delta, 0.0)
 	
-	# enemies shoot at random, each on its own timer between min and max seconds
+
 	for i in e_alive.size():
 		if !e_alive[i]:
 			continue
@@ -239,7 +234,6 @@ func _physics_process(delta:float) -> void:
 			e_timer[i] = randf_range(enemy_fire_min, enemy_fire_max)
 			eb.append(e_base[i] + Vector2(fx, -0.08))
 	
-	# your bullets
 	var new_pb := PackedVector2Array()
 	for p in pb:
 		p.y += PLAYER_BULLET_SPEED * delta
@@ -253,7 +247,6 @@ func _physics_process(delta:float) -> void:
 			new_pb.append(p)
 	pb = new_pb
 	
-	# enemy bullets
 	var new_eb := PackedVector2Array()
 	var got_hit := false
 	for p in eb:
@@ -275,13 +268,12 @@ func _physics_process(delta:float) -> void:
 	if !alive:
 		running = false
 		_broadcast(delta, true)
-		finish_puzzle() # the host confirms, then every client finishes together
+		finish_puzzle() 
 		return
 	
 	_broadcast(delta)
 	_render()
 
-# ------------------------------------------------------------ sync
 func _broadcast(delta:float, force := false) -> void:
 	send_cd -= delta
 	if send_cd > 0.0 and !force:
@@ -295,7 +287,7 @@ func _broadcast(delta:float, force := false) -> void:
 
 func _show_state(sx:float, f:float, mask:int, pbs:PackedVector2Array, ebs:PackedVector2Array, c:float, fl:bool) -> void:
 	if _i_am_worker() or done:
-		return # the worker already has the real state
+		return 
 	ship_x = sx
 	fx = f
 	pb = pbs
@@ -306,7 +298,6 @@ func _show_state(sx:float, f:float, mask:int, pbs:PackedVector2Array, ebs:Packed
 		e_alive[i] = ((mask >> i) & 1) == 1
 	_render()
 
-# ------------------------------------------------------------ drawing
 func _render() -> void:
 	if field == null:
 		return
@@ -323,7 +314,6 @@ func _render() -> void:
 	for i in eb.size():
 		eb_pool[i].position = Vector3(eb[i].x, eb[i].y, 0)
 	if shoot_mat != null:
-		# the fire button dims while the shot is on cooldown
 		shoot_mat.albedo_color = WHITE if (cd <= 0.0 and !done) else DIM
 
 func _fit_pool(pool:Array, count:int, radius:float) -> void:
