@@ -27,6 +27,9 @@ class_name BruteKit extends MonsterKit
 @export var footstep_db := 12.0
 @export var footstep_sounds:Array[AudioStream] # leave empty to use the placeholder thud
 
+@export_category("Traversal nodes")
+@export var node_disable_time := 180.0
+
 # ---- local state (the Brute's own machine) ----
 var swing_cd := 0.0
 var dash_cd := 0.0
@@ -155,11 +158,14 @@ func _try_attack() -> void:
 		return
 	swing_cd = attack_interval
 	var t := _find_attack_target()
+	var node:Node = null
 	if t == null:
-		miss_left = miss_time # a swing at nothing is a miss
-	_call_host(_host_attack, [client_id, t.name.to_int() if t else 0])
+		node = _find_trav_node()
+		if node == null:
+			miss_left = miss_time # a swing at nothing is a miss
+	_call_host(_host_attack, [client_id, t.name.to_int() if t else 0, node.get_path() if node else NodePath("")])
 
-func _host_attack(sender:int, target_id:int) -> void:
+func _host_attack(sender:int, target_id:int, node_path:NodePath = NodePath("")) -> void:
 	if !GDSync.is_host() or sender != client_id:
 		return
 	var now := Time.get_ticks_msec()
@@ -174,6 +180,11 @@ func _host_attack(sender:int, target_id:int) -> void:
 		if close and _line_clear(plr.global_position + Vector3.UP * 1.0, t.global_position + Vector3.UP * 0.5):
 			hit = true
 			_call_on(target_id, t.hit_by_damager, [attack_damage, "Brute"])
+	if target_id == 0 and node_path != NodePath(""):
+		var n := get_node_or_null(node_path)
+		if n != null and n.is_in_group("traversal_node") \
+				and plr.global_position.distance_to(n.global_position) <= attack_range + 3.0:
+			hit = n.host_sabotage(sabotage_duration())
 	_call_on(client_id, _attack_result, [hit])
 
 func _attack_result(hit:bool) -> void:
@@ -453,3 +464,27 @@ func _make_thud() -> AudioStreamWAV:
 	w.mix_rate = rate
 	w.data = data
 	return w
+
+func sabotage_duration() -> float:
+	return node_disable_time
+	
+func _find_trav_node() -> Node:
+	var cam := plr.first_person_camera
+	var from := cam.global_position
+	var fwd := -cam.global_transform.basis.z
+	var best:Node = null
+	var best_dot := 0.9
+	for n in plr.get_tree().get_nodes_in_group("traversal_node"):
+		var p:Vector3 = n.global_position
+		if from.distance_to(p) > attack_range:
+			continue
+		var d := fwd.dot((p - from).normalized())
+		if d < best_dot:
+			continue
+		var q := PhysicsRayQueryParameters3D.create(from, from + (p - from) * 0.92)
+		q.exclude = [plr.get_rid()]
+		if !plr.get_world_3d().direct_space_state.intersect_ray(q).is_empty():
+			continue # no sabotage through walls
+		best = n
+		best_dot = d
+	return best

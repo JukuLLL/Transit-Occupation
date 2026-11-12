@@ -1,6 +1,17 @@
 class_name player extends CharacterBody3D
 
 #region Variables
+@export var trav_range := 14.0
+@export var trav_pull_speed := 32.0
+@export var trav_accel := 70.0
+@export var trav_hold_distance := 1.4
+@export var trav_launch_min := 12.0
+@export var trav_launch_max := 22.0
+@export var trav_release_distance := 3.0 # you let go this far from the handle
+var trav_node:Node   # typed as Node on purpose, to avoid a circular type error
+var trav_target:Node
+var trav_speed := 0.0
+var trav_time := 0.0
 @export var tight_speed_mult := 0.4      # walking speed inside a tight space
 @export var crouch_height_ratio := 0.5   # body height while squeezing through
 @export var crouch_anim := "crouch"      # optional AnimationPlayer animation
@@ -439,6 +450,7 @@ func _physics_process(delta):
 	
 	# Downed or trapped: no normal controls
 	if downed or trapped:
+		trav_node = null
 		release_socket()
 		cancel_rescue()
 		if downed and !picked_up:
@@ -462,12 +474,15 @@ func _physics_process(delta):
 	if grapple_ray.is_colliding():
 		grappling_target = grapple_ray.get_collider()
 	
-	var busy := carry_check(delta)
+	var busy := trav_check(delta)
+	if !busy:
+		busy = carry_check(delta)
 	if !busy:
 		rescue_check(delta)
 		socket_check()
 	grappling_hook(delta)
 	if carried_item == null:
+		update_trav_lock()
 		update_socket_lock()
 		update_rescue_lock()
 	if monster:
@@ -656,6 +671,7 @@ func downed_check():
 		downed_interact = null
 
 func death():
+	trav_node = null
 	if is_instance_valid(indicators):
 		indicators.queue_free()
 	escaped = false
@@ -727,7 +743,7 @@ func grappling_hook(_delta:float):
 				closest = spot
 		set_grapple_target(closest.global_position)
 		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket) and rescue_target == null and carried_item == null and !rc_consumed and grab_hold <= 0.0
-		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos):
+		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos) and trav_node == null:
 			if !closest.allow_pull:
 				pass
 			else:
@@ -1233,4 +1249,86 @@ func _set_crouch(on:bool) -> void:
 			ap.play(crouch_anim)
 		else:
 			ap.play_backwards(crouch_anim)
+#endregion
+
+#region Traversal
+func find_trav_target() -> Node:
+	var best:Node = null
+	var best_d := 160.0
+	for n in get_tree().get_nodes_in_group("traversal_node"):
+		if n.state != 0: # only active nodes
+			continue
+		if global_position.distance_to(n.global_position) > trav_range:
+			continue
+		if first_person_camera.is_position_behind(n.global_position):
+			continue
+		var d := first_person_camera.unproject_position(n.global_position).distance_to(cross_hair_regular_pos)
+		if d < best_d:
+			best_d = d
+			best = n
+	return best
+
+func update_trav_lock():
+	trav_target = null
+	if monster or downed or trapped or carried_item != null or trav_node != null:
+		return
+	if socket_target != null or find_rescue_nest() != null:
+		return # sockets and rescues keep priority
+	trav_target = find_trav_target()
+	if trav_target != null:
+		crosshair.position = first_person_camera.unproject_position(trav_target.global_position)
+		crosshair.play("interact")
+
+# Returns true while right-click is busy with a node
+func trav_check(delta:float) -> bool:
+	if monster:
+		return false
+	if trav_node == null:
+		if trav_target == null or !Input.is_action_just_pressed("right_click"):
+			return false
+		if is_instance_valid(held_socket) or rescue_target != null or carried_item != null:
+			return false
+		if find_grab_target() != null:
+			return false
+		trav_node = trav_target
+		trav_time = 0.0
+		trav_speed = maxf(Vector2(velocity.x, velocity.z).length(), 8.0)
+		trav_node.request_use()
+		return true
+	
+	var n := trav_node
+	if !is_instance_valid(n):
+		trav_release(false)
+		return false
+	trav_time += delta
+	if !Input.is_action_pressed("right_click") or n.state == 2 \
+			or global_position.distance_to(n.global_position) > trav_range + 10.0:
+		trav_release(true)
+		return false
+	if trav_time > 0.8 and n.user_id != name.to_int():
+		trav_release(false) # the host refused (cooldown, sabotage or someone else was first)
+		return false
+	
+	var to:Vector3 = n.global_position - global_position
+	var dist := to.length()
+	if dist <= trav_release_distance:
+		trav_release(true) # close enough: detach and launch with the momentum you built
+		return false
+	dash_left = 0.0
+	trav_speed = move_toward(trav_speed, trav_pull_speed, trav_accel * delta)
+	velocity = to.normalized() * trav_speed
+	return true
+
+func trav_release(launch:bool) -> void:
+	trav_node = null
+	if !launch:
+		velocity *= 0.3
+		return
+	var f := -global_transform.basis.z
+	f.y = 0.0
+	f = f.normalized()
+	var s := clampf(trav_speed, trav_launch_min, trav_launch_max)
+	velocity = f * s + Vector3.UP * 3.0
+	bhop = true # lets you chain a b-hop straight out of the launch
+	floor_counter = 0
 #endregion

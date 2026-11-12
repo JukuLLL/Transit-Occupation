@@ -68,3 +68,6 @@ func _call_all(c:Callable, args:Array = []) -> void:
 
 func _call_host(c:Callable, args:Array = []) -> void:
 	_call_on(GDSync.get_host(), c, args)
+
+func sabotage_duration() -> float:
+	return 60.0 # default for monsters that don't set their own
