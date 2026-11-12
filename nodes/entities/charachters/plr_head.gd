@@ -78,6 +78,10 @@ func enable_monster():
 		first_person_camera.set_cull_mask_value(10,false)
 	if state_label:
 		state_label.hide()
+	if lives_label:
+		lives_label.hide()
+	if is_instance_valid(health_bar):
+		health_bar.hide()
 
 
 func _physics_process(delta: float) -> void:
