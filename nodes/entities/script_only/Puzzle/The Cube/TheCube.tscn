@@ -139,7 +139,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.024207, 0, -5.4914637)
 [node name="PuzzleCube" parent="." unique_id=1663174974 instance=ExtResource("3_4i3qg")]
 transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 0, 0, 0)
 
-[node name="Cube" parent="PuzzleCube" index="0" unique_id=547368382]
+[node name="Cube" parent="PuzzleCube" index="0" unique_id=2055227731]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4459772, -0.5400443, -2.8842266)
 mesh = ExtResource("4_khcg2")
 surface_material_override/0 = SubResource("ShaderMaterial_iyxlp")
