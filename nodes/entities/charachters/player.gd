@@ -870,7 +870,7 @@ func find_socket_target() -> PowerSocket:
 func update_socket_lock():
 	if Input.is_action_just_pressed("ping"):
 		print("held_socket: ", held_socket, " | downed: ", downed, " | target: ", socket_target)
-	if downed or is_instance_valid(held_socket):
+	if downed or monster or is_instance_valid(held_socket):
 		socket_target = null
 		return
 	socket_target = find_socket_target()
@@ -882,6 +882,8 @@ var held_socket:PowerSocket
 @export var socket_max_distance := 6.0
 
 func socket_check():
+	if monster:
+		return
 	if Input.is_action_just_pressed("right_click"):
 		print("RC pressed | monster=", monster, " downed=", downed, " rescue_target=", rescue_target, " lock=", socket_target, " held=", held_socket)
 	if is_instance_valid(held_socket):
