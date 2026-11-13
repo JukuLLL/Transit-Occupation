@@ -245,11 +245,16 @@ func visibility_to_blind():
 func _unhandled_input(event):
 	if !GDSync.is_gdsync_owner(self) or Network.round_over: return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		var look_mult := 1.0
+		if kit != null and kit.has_method("look_multiplier"):
+			look_mult = kit.look_multiplier()
+		var sens := mouse_sensitivity * look_mult
+		
 		# Turn the player left/right
-		rotation.y += (-event.relative.x * mouse_sensitivity) * gravity_state
+		rotation.y += (-event.relative.x * sens) * gravity_state
 		
 		# Look up/down
-		plr_head.rotation.x += (-event.relative.y * mouse_sensitivity)
+		plr_head.rotation.x += (-event.relative.y * sens)
 		
 		# Prevent the camera from flipping upside down
 		plr_head.rotation.x = clamp(
@@ -263,7 +268,6 @@ func _unhandled_input(event):
 		
 	if event.is_action_pressed("ping"):
 		do_ping()
-		
 			
 func do_ping():
 	var cam:Camera3D = first_person_camera

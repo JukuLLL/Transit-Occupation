@@ -13,6 +13,7 @@ class_name BruteKit extends MonsterKit
 @export var dash_duration := 2.0
 @export var dash_speed := 28.0
 @export var dash_hit_radius := 1.3
+@export var dash_look_mult := 0.15 # 1.0 = normal, lower = heavier turning while dashing
 
 @export_category("All-Seeing")
 @export var scan_cooldown := 20.0
@@ -272,16 +273,18 @@ func after_slide(_delta:float) -> void:
 			_dash_hit(p)
 			return
 	# A solid wall or another survivor body in front ends the dash
-	for i in plr.get_slide_collision_count():
-		var c := plr.get_slide_collision(i)
-		var other := c.get_collider() as player
-		if other != null and !other.monster and can_target(other, true):
-			_dash_hit(other)
-			return
-		var n := c.get_normal()
-		if absf(n.y) < 0.5 and n.dot(dash_dir) < -0.5:
-			_end_dash()
-			return
+		for i in plr.get_slide_collision_count():
+			var c := plr.get_slide_collision(i)
+			var other := c.get_collider() as player
+			if other != null and !other.monster and can_target(other, true):
+				_dash_hit(other)
+				return
+			var n := c.get_normal()
+			var real_speed := Vector2(plr.velocity.x, plr.velocity.z).length()
+			var blocked := real_speed < dash_speed * 0.4
+			if blocked and absf(n.y) < 0.5 and n.dot(dash_dir) < -0.5:
+				_end_dash()
+				return
 	if dash_left <= 0.0:
 		_end_dash()
 
@@ -488,3 +491,6 @@ func _find_trav_node() -> Node:
 		best = n
 		best_dot = d
 	return best
+
+func look_multiplier() -> float:
+	return dash_look_mult if dashing else 1.0
