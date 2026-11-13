@@ -7,6 +7,7 @@ extends Control
 
 
 func _ready() -> void:
+	
 	fade_in()
 	GDSync.connected.connect(connected)
 	
@@ -18,19 +19,26 @@ func _ready() -> void:
 	$AddCredits.pressed.connect(_on_add_credits_pressed)
 	$AddGoldCoins.pressed.connect(_on_add_gold_coins_pressed)
 	
+	# Steam name: shown in the NameLabel, can't be changed
+	PlayerProfile.name_changed.connect(_on_steam_name_changed)
+	_on_steam_name_changed(PlayerProfile.display_name)
+	
 	if Network.pending_message != "":
 		show_message(Network.pending_message)
 		Network.pending_message = ""
 		
 	$play.custom_minimum_size = Vector2(420, 120)
 	$play.add_theme_font_size_override("font_size", 56)
-	
 
 func connected():
 	print("connected")
 	#for child:Node in get_children():
 		#if child.get("disabled") != null:
 			#child.disabled = false
+			
+func _on_steam_name_changed(n: String) -> void:
+	$NameLabel.text = n
+	Network.plr_name = n
 
 var play_menu:PlayMenu
 
@@ -61,11 +69,6 @@ func _on_create_testing_pressed() -> void:
 
 func _on_join_testing_pressed() -> void:
 	Network.join_lobby(true)
-	pass # Replace with function body.
-
-
-func _on_namer_text_changed(new_text: String) -> void:
-	Network.plr_name = new_text
 	pass # Replace with function body.
 
 
