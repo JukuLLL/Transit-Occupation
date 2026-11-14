@@ -20,6 +20,8 @@ csharp=true
 
 config/name="Transit Occupation"
 run/main_scene="uid://cra81vsj0nib3"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Transit Occupation"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 run/max_fps=60
 boot_splash/bg_color=Color(0, 0, 0, 1)

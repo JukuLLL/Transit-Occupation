@@ -3,9 +3,13 @@ extends Node
 signal credits_changed(new_amount: int)
 signal gold_coins_changed(new_amount: int)
 
+# Files in SYNC_DIR are the ones Steam Cloud will sync later.
+# Files in LOCAL_DIR (Steam not running) are never synced.
+const SYNC_DIR := "user://saves"
+const LOCAL_DIR := "user://saves_local"
 const LEGACY_PATH := "user://currency.cfg"
 
-var _save_path := LEGACY_PATH
+var _save_path := ""
 
 var credits: int = 0:
 	set(value):
@@ -20,14 +24,28 @@ var gold_coins: int = 0:
 func _ready() -> void:
 	load_data()
 
+func _steam_account_known() -> bool:
+	return SteamManager.steam_ok and str(SteamManager.steam_id) != "0"
+
 func _build_save_path() -> String:
-	var all_args := OS.get_cmdline_args() + OS.get_cmdline_user_args()
-	for a in all_args:
-		if a.begins_with("--name="):
-			return "user://currency_test_%s.cfg" % a.substr(7).strip_edges()
-	if SteamManager.steam_ok and str(SteamManager.steam_id) != "0":
-		return "user://currency_%s.cfg" % str(SteamManager.steam_id)
-	return "user://currency_offline.cfg"
+	if _steam_account_known():
+		DirAccess.make_dir_recursive_absolute(SYNC_DIR)
+		return "%s/currency_%s.cfg" % [SYNC_DIR, str(SteamManager.steam_id)]
+	DirAccess.make_dir_recursive_absolute(LOCAL_DIR)
+	return LOCAL_DIR + "/currency_offline.cfg"
+
+# Saves from older versions of this script, moved into the new folders once
+func _find_old_file() -> String:
+	var candidates:Array = []
+	if _steam_account_known():
+		candidates.append("user://currency_%s.cfg" % str(SteamManager.steam_id))
+	else:
+		candidates.append("user://currency_offline.cfg")
+	candidates.append(LEGACY_PATH)
+	for p in candidates:
+		if FileAccess.file_exists(p):
+			return p
+	return ""
 
 func add_credits(amount: int) -> void:
 	credits += amount
@@ -47,20 +65,20 @@ func save_data() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("currency", "credits", credits)
 	cfg.set_value("currency", "gold_coins", gold_coins)
+	cfg.set_value("meta", "saved_at", Time.get_unix_time_from_system())
 	cfg.save(_save_path)
 
 func load_data() -> void:
 	_save_path = _build_save_path()
 	var cfg := ConfigFile.new()
 	if cfg.load(_save_path) != OK:
-		# No save for this account yet: bring over the old shared save once
-		var legacy := ConfigFile.new()
-		if legacy.load(LEGACY_PATH) != OK:
+		var old := _find_old_file()
+		if old == "" or cfg.load(old) != OK:
 			return
-		credits = legacy.get_value("currency", "credits", 0)
-		gold_coins = legacy.get_value("currency", "gold_coins", 0)
+		credits = cfg.get_value("currency", "credits", 0)
+		gold_coins = cfg.get_value("currency", "gold_coins", 0)
 		save_data()
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(LEGACY_PATH))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(old))
 		return
 	credits = cfg.get_value("currency", "credits", 0)
 	gold_coins = cfg.get_value("currency", "gold_coins", 0)
