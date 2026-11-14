@@ -21,6 +21,10 @@ func _ready() -> void:
 	load_data()
 
 func _build_save_path() -> String:
+	var all_args := OS.get_cmdline_args() + OS.get_cmdline_user_args()
+	for a in all_args:
+		if a.begins_with("--name="):
+			return "user://currency_test_%s.cfg" % a.substr(7).strip_edges()
 	if SteamManager.steam_ok and str(SteamManager.steam_id) != "0":
 		return "user://currency_%s.cfg" % str(SteamManager.steam_id)
 	return "user://currency_offline.cfg"

@@ -74,6 +74,7 @@ func _ready() -> void:
 	
 			
 func lobby_join_failed(lobby_name:String, error:int):
+	print("JOIN FAILED: ", lobby_name, " error ", error)
 	var msg := "Could not join the lobby."
 	match error:
 		ENUMS.LOBBY_JOIN_ERROR.LOBBY_IS_FULL:
@@ -81,7 +82,7 @@ func lobby_join_failed(lobby_name:String, error:int):
 		ENUMS.LOBBY_JOIN_ERROR.LOBBY_DOES_NOT_EXIST:
 			msg = "That lobby doesn't exist."
 	return_to_menu(msg)
-
+	
 func return_to_menu(message:String):
 	round_over = false
 	game_started = false
@@ -231,6 +232,7 @@ func quick_play() -> bool:
 	if list.is_empty():
 		return false
 	var target:String = list.pick_random()
+	print("QUICKPLAY picked: ", target, " from ", list)
 	current_lobby = target
 	Network.hosting = true
 	get_tree().change_scene_to_file("uid://dhy3uk4ck23ud")
