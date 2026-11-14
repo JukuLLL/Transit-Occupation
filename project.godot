@@ -19,7 +19,7 @@ csharp=true
 [application]
 
 config/name="Transit Occupation"
-run/main_scene="uid://cra81vsj0nib3"
+run/main_scene="uid://8fjc1hw3dq6w"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Transit Occupation"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")

@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://8fjc1hw3dq6w"]
+
+[ext_resource type="Script" uid="uid://dk8ccslp1m3mr" path="res://nodes/loading_screen.gd" id="1_eg4ge"]
+
+[node name="LoadingScreen" type="Control" unique_id=1843729948]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_eg4ge")
