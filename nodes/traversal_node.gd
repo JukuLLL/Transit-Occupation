@@ -85,6 +85,8 @@ func _host_use(id:int) -> void:
 func host_sabotage(duration:float) -> bool:
 	if !GDSync.is_host():
 		return false
+	if state == S.SABOTAGED:
+		return false # already destroyed: can't be hit again, timer isn't reset
 	GDSync.call_func_all(_set_state, S.SABOTAGED, duration, 0)
 	return true
 
