@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdj4004xhj4o4"
-path="res://.godot/imported/graffit_Cat.png-36eede66b1179360ee52b7d0d055d53c.ctex"
+path="res://.godot/imported/graffit_Cat.png-1f245db014c146a3309f950dc46bc495.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/decals/graffit_Cat.png"
-dest_files=["res://.godot/imported/graffit_Cat.png-36eede66b1179360ee52b7d0d055d53c.ctex"]
+source_file="res://textures/Decals/graffit_Cat.png"
+dest_files=["res://.godot/imported/graffit_Cat.png-1f245db014c146a3309f950dc46bc495.ctex"]
 
 [params]
 

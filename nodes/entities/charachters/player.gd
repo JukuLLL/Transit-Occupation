@@ -547,6 +547,7 @@ func pickup(monster_path:NodePath):
 		down_timer.start()
 
 func sync_pick_up(on:bool, monster_path:NodePath = NodePath("")):
+	var old_spot := monster_hold_spot
 	picked_up = on
 	monster_hold_spot = null
 	if on:
@@ -559,9 +560,33 @@ func sync_pick_up(on:bool, monster_path:NodePath = NodePath("")):
 				add_collision_exception_with(plr)
 			else:
 				remove_collision_exception_with(plr)
+	
+	# Being put down: land right at the monster's feet, so you can't throw anyone out of bounds
+	if !on:
+		var former_carrier:player = null
+		if is_instance_valid(old_spot):
+			former_carrier = _carrier_of(old_spot)
+		if former_carrier == null:
+			former_carrier = _find_monster()
+		if former_carrier != null:
+			global_position = former_carrier.global_position + Vector3.UP * 0.05
+			velocity = Vector3.ZERO
+		print("DROP: carrier=", former_carrier, " position=", global_position)
 
-# Runs on every client (called from Nest.sync_trap)
-# Runs on every client (called from Nest.sync_trap)
+func _carrier_of(spot:Node) -> player:
+	var n:Node = spot
+	while n != null:
+		if n is player:
+			return n
+		n = n.get_parent()
+	return null
+	
+func _find_monster() -> player:
+	for p in get_tree().get_nodes_in_group("plr"):
+		if p is player and p.monster:
+			return p
+	return null
+
 func set_trapped(n:Nest) -> void:
 	dash_left = 0.0
 	trapped = true
