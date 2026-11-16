@@ -18,6 +18,7 @@ func _ready() -> void:
 	
 	$AddCredits.pressed.connect(_on_add_credits_pressed)
 	$AddGoldCoins.pressed.connect(_on_add_gold_coins_pressed)
+	$AddXP.pressed.connect(_on_add_xp_pressed)
 	
 	# Steam name: shown in the NameLabel, can't be changed
 	PlayerProfile.name_changed.connect(_on_steam_name_changed)
@@ -130,3 +131,6 @@ func show_message(text:String, duration := 4.0) -> void:
 	tween.tween_interval(duration)
 	tween.tween_property(label, "modulate:a", 0.0, 0.5)
 	tween.tween_callback(layer.queue_free)
+
+func _on_add_xp_pressed() -> void:
+	PlayerProgress.add_xp(100)

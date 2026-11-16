@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://d2tgbd7ul6mna"]
+
+[ext_resource type="Script" uid="uid://bnosm76dxl61t" path="res://progression/level_screen.gd" id="1_m0vpj"]
+[ext_resource type="PackedScene" uid="uid://bixqqhm13t583" path="res://menus/level_card.tscn" id="2_u12ho"]
+
+[node name="LevelScreen" type="Control" unique_id=1180714621]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_m0vpj")
+card_scene = ExtResource("2_u12ho")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=999573516]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.050398394, 0.001912205, 0.00285704, 1)
+
+[node name="ExitButton" type="Button" parent="." unique_id=1184634739]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 144.0
+offset_bottom = 74.0
+text = "Exit"
+
+[node name="Info" type="VBoxContainer" parent="." unique_id=1999096288]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 400.0
+grow_horizontal = 2
+
+[node name="CurrentLevelLabel" type="Label" parent="Info" unique_id=1275551538]
+layout_mode = 2
+
+[node name="XPLabel" type="Label" parent="Info" unique_id=551820070]
+layout_mode = 2
+
+[node name="XPBar" type="ProgressBar" parent="Info" unique_id=425723318]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+show_percentage = false
+
+[node name="LevelScroll" type="ScrollContainer" parent="." unique_id=1990995429]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 250.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+vertical_scroll_mode = 0
+
+[node name="LevelList" type="HBoxContainer" parent="LevelScroll" unique_id=1144973371]
+layout_mode = 2
+theme_override_constants/separation = 16

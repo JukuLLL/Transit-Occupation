@@ -51,6 +51,7 @@ VfxCreator="*uid://6r4glbyrsowr"
 TransitCode="*uid://jxu8gtvtddex"
 SteamManager="*uid://cj2xydokx707d"
 PlayerProfile="*uid://d0ta3b7ulneco"
+PlayerProgress="*uid://cwmv6pi7c0bb"
 
 [display]
 
@@ -81,6 +82,7 @@ folder_colors={
 "res://nodes/": "yellow",
 "res://nodes/entities/": "orange",
 "res://nodes/props/": "blue",
+"res://progression/": "pink",
 "res://temporary_models/": "red"
 }
 
