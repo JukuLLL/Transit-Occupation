@@ -83,6 +83,7 @@ folder_colors={
 "res://nodes/entities/": "orange",
 "res://nodes/props/": "blue",
 "res://progression/": "pink",
+"res://rarity/": "blue",
 "res://temporary_models/": "red"
 }
 
