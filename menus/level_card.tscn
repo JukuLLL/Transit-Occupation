@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" uid="uid://bo10f1jwyoa00" path="res://progression/level_card.gd" id="1_345wh"]
 [ext_resource type="Texture2D" uid="uid://cbablt58ironr" path="res://progression/levelindicator.png" id="1_b0fcc"]
+[ext_resource type="PackedScene" uid="uid://c2iydocqo323i" path="res://menus/item_slot.tscn" id="2_jybkj"]
 
 [node name="LevelCard" type="Button" unique_id=1098292710]
 custom_minimum_size = Vector2(200, 360)
 offset_right = 8.0
 offset_bottom = 8.0
 script = ExtResource("1_345wh")
+slot_scene = ExtResource("2_jybkj")
 
 [node name="Content" type="VBoxContainer" parent="." unique_id=20229589]
 layout_mode = 1
@@ -33,8 +35,11 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="RewardLabel" type="Label" parent="Content/RewardArea" unique_id=639357321]
+[node name="RewardList" type="VBoxContainer" parent="Content/RewardArea" unique_id=641535041]
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
 
 [node name="ClaimedLabel" type="Label" parent="." unique_id=1535947452]
 visible = false

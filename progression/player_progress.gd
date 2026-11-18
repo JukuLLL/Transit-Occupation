@@ -63,9 +63,9 @@ func claim(l:int) -> bool:
 	reward_claimed.emit(l)
 	return true
 
-# Future: give the actual reward of this level here
-func _grant_reward(_l:int) -> void:
-	pass
+func _grant_reward(l:int) -> void:
+	for stack in LevelRewards.for_level(l):
+		ItemDB.grant(stack)
 
 # ---------- Saving ----------
 func _steam_account_known() -> bool:

@@ -54,6 +54,38 @@ func add_credits(amount: int) -> void:
 func add_gold_coins(amount: int) -> void:
 	gold_coins += amount
 	save_data()
+	
+func add_currency(currency_id:String, amount:int) -> bool:
+	if amount <= 0:
+		return false
+	match currency_id:
+		"credits":
+			add_credits(amount)
+			return true
+		"gold_coins":
+			add_gold_coins(amount)
+			return true
+	push_warning("Unknown currency: " + currency_id)
+	return false
+
+func can_afford(currency_id:String, amount:int) -> bool:
+	match currency_id:
+		"credits":
+			return credits >= amount
+		"gold_coins":
+			return gold_coins >= amount
+	return false
+
+func spend_currency(currency_id:String, amount:int) -> bool:
+	if amount <= 0 or !can_afford(currency_id, amount):
+		return false
+	match currency_id:
+		"credits":
+			credits -= amount
+		"gold_coins":
+			gold_coins -= amount
+	save_data()
+	return true
 
 func delete_data():
 	var cfg := ConfigFile.new()
