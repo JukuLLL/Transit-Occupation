@@ -67,6 +67,10 @@ window/vsync/vsync_mode=2
 
 project/assembly_name="Transit Occupation"
 
+[editor]
+
+run/main_run_args="--rendering-driver d3d12"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/GD-Sync/plugin.cfg", "res://addons/GDDrawPlus/plugin.cfg", "res://addons/MultiPlay/plugin.cfg", "res://addons/asset_placer/plugin.cfg", "res://addons/console/plugin.cfg", "res://addons/godotsteam/plugin.cfg", "res://addons/juicee/plugin.cfg", "res://addons/ridiculous_coding/plugin.cfg", "res://addons/unibuilder/plugin.cfg", "res://addons/vfx_animaiton_player/plugin.cfg", "res://addons/xesa/ExposeThemProperties/plugin.cfg")

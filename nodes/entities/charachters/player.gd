@@ -43,6 +43,14 @@ var downed_interact:interactable
 
 var indicators:Node
 
+# GRAB HANDLES
+var grab_handle:GrabHandle
+var handle_target:GrabHandle
+var handle_len := 0.0
+var handle_t := 0.0 # progress along a Rush path (meters)
+var handle_speed := 0.0
+var handle_cooldown_left := 0.0
+
 @export var ping_lifetime:float = 7.0
 @export var ping_max_distance:float = 300.0
 var current_ping:PingMarker
@@ -455,6 +463,8 @@ func _physics_process(delta):
 	# Downed or trapped: no normal controls
 	if downed or trapped:
 		trav_node = null
+		trav_node = null
+		handle_release()
 		release_socket()
 		cancel_rescue()
 		if downed and !picked_up:
@@ -471,7 +481,10 @@ func _physics_process(delta):
 	if tight_count > 0:
 		speed_mult *= tight_speed_mult
 	
-	movement(delta)
+	if grab_handle == null:
+		movement(delta)
+	else:
+		handle_tick_timers(delta)
 	
 	if grapple_pos != null:
 		grapple_ray.look_at(grapple_pos)
@@ -480,15 +493,19 @@ func _physics_process(delta):
 	
 	var busy := trav_check(delta)
 	if !busy:
-		busy = carry_check(delta)
+		busy = handle_check(delta)
 	if !busy:
-		rescue_check(delta)
-		socket_check()
+		busy = carry_check(delta)
 	grappling_hook(delta)
 	if carried_item == null:
 		update_trav_lock()
 		update_socket_lock()
 		update_rescue_lock()
+	if carried_item == null:
+		update_trav_lock()
+		update_socket_lock()
+		update_rescue_lock()
+		update_handle_lock()
 	if monster:
 		if kit != null:
 			if kit.ready_done:
@@ -700,6 +717,7 @@ func downed_check():
 		downed_interact = null
 
 func death():
+	grab_handle = null
 	trav_node = null
 	if is_instance_valid(indicators):
 		indicators.queue_free()
@@ -771,7 +789,7 @@ func grappling_hook(_delta:float):
 			if global_position.distance_squared_to(spot.global_position) < global_position.distance_squared_to(closest.global_position):
 				closest = spot
 		set_grapple_target(closest.global_position)
-		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket) and rescue_target == null and carried_item == null and !rc_consumed and grab_hold <= 0.0
+		var mouse = Input.is_action_pressed("right_click") and !is_instance_valid(held_socket) and rescue_target == null and carried_item == null and !rc_consumed and grab_hold <= 0.0 and grab_handle == null
 		if mouse and grapple_ray.is_colliding() and grappling_target.is_in_group("grapple") and is_in_range(first_person_camera.unproject_position(grapple_pos)) and first_person_camera.is_position_in_frustum(grapple_pos) and trav_node == null:
 			if !closest.allow_pull:
 				pass
@@ -1362,4 +1380,145 @@ func trav_release(launch:bool) -> void:
 	velocity = f * s + Vector3.UP * 3.0
 	bhop = true # lets you chain a b-hop straight out of the launch
 	floor_counter = 0
+#endregion
+
+#region Grab handles
+func find_handle_target() -> GrabHandle:
+	var best:GrabHandle = null
+	var best_d := socket_lock_sensitivity
+	for n in get_tree().get_nodes_in_group("grab_handle"):
+		var h := n as GrabHandle
+		if h == null:
+			continue
+		if h.handle_type == GrabHandle.HandleType.RUSH and h.end_point == null:
+			continue
+		if global_position.distance_to(h.global_position) > h.interaction_range:
+			continue
+		if first_person_camera.is_position_behind(h.global_position):
+			continue
+		var d := first_person_camera.unproject_position(h.global_position).distance_to(cross_hair_regular_pos)
+		if d < best_d:
+			best_d = d
+			best = h
+	return best
+
+func update_handle_lock():
+	handle_target = null
+	if monster or downed or trapped or carried_item != null or grab_handle != null:
+		return
+	if socket_target != null or trav_target != null or find_rescue_nest() != null:
+		return # sockets, traversal nodes and rescues keep priority
+	handle_target = find_handle_target()
+	if handle_target != null:
+		crosshair.position = first_person_camera.unproject_position(handle_target.global_position)
+		crosshair.play("interact")
+
+# movement() is skipped while attached, so keep its timers running
+func handle_tick_timers(delta:float) -> void:
+	dash_cooldown = maxf(dash_cooldown - delta, 0.0)
+	jump_lockout = maxf(jump_lockout - delta, 0.0)
+	if plr_head:
+		plr_head.update_dash(dash_cooldown, DASH_COOLDOWN)
+
+# Returns true while right-click is busy with a handle
+func handle_check(delta:float) -> bool:
+	if monster:
+		return false
+	handle_cooldown_left = maxf(handle_cooldown_left - delta, 0.0)
+	if grab_handle == null:
+		if handle_target == null or handle_cooldown_left > 0.0 or !Input.is_action_just_pressed("right_click"):
+			return false
+		if is_instance_valid(held_socket) or rescue_target != null or carried_item != null or find_grab_target() != null:
+			return false
+		handle_attach(handle_target)
+	if !is_instance_valid(grab_handle) or !Input.is_action_pressed("right_click"):
+		handle_release()
+		return false
+	if grab_handle.handle_type == GrabHandle.HandleType.RUSH:
+		if !_handle_rush_step(delta):
+			return false
+	else:
+		_handle_swing_step(delta)
+	return true
+
+func handle_attach(h:GrabHandle) -> void:
+	grab_handle = h
+	dash_left = 0.0
+	handle_t = 0.0
+	handle_len = maxf(global_position.distance_to(h.global_position), h.min_radius) # starts where you are: no teleport
+	handle_speed = clampf(Vector2(velocity.x, velocity.z).length(), 6.0, h.zipline_speed)
+
+func handle_release() -> void:
+	if grab_handle == null:
+		return
+	if is_instance_valid(grab_handle):
+		handle_cooldown_left = grab_handle.cooldown
+	grab_handle = null
+	bhop = true # keeps your momentum: no air braking after letting go
+	floor_counter = 0
+
+func _handle_swing_step(delta:float) -> void:
+	var h := grab_handle
+	var pivot := h.global_position
+	
+	# The rope eases toward the configured radius
+	handle_len = maxf(move_toward(handle_len, h.swing_radius, h.reel_speed * delta), h.min_radius)
+	
+	# Gravity, same per-tick value as the rest of the controller
+	velocity.y -= gravity.y * gravity_state
+	
+	# Steering and pumping from movement input
+	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var to_pivot := pivot - global_position
+	var dist := to_pivot.length()
+	if input != Vector2.ZERO and dist > 0.01:
+		var wish := transform.basis * Vector3(input.x, 0, input.y)
+		wish.y = 0.0
+		wish = wish.normalized()
+		var rope_dir := to_pivot / dist
+		var steer := wish - rope_dir * wish.dot(rope_dir) # never pushes along the rope
+		velocity += steer * h.air_control_strength * delta
+		var flat := Vector3(velocity.x, 0, velocity.z)
+		if flat.length() > 0.5:
+			var move_dir := flat.normalized()
+			var align := wish.dot(move_dir)
+			if align > 0.0:
+				velocity += move_dir * h.swing_acceleration * align * delta
+	
+	# The rope: remove outward velocity when it is taut, and gently pull back in
+	to_pivot = pivot - global_position
+	dist = to_pivot.length()
+	if dist > handle_len and dist > 0.01:
+		var inward := to_pivot / dist
+		var v_out := velocity.dot(-inward)
+		if v_out > 0.0:
+			velocity += inward * v_out
+		var excess := dist - handle_len
+		velocity += inward * minf(excess * 0.5 / maxf(delta, 0.001), h.reel_speed * 2.0)
+	
+	velocity = velocity.limit_length(h.max_speed)
+
+# Returns false when the ride is over (end reached)
+func _handle_rush_step(delta:float) -> bool:
+	var h := grab_handle
+	var a := h.global_position
+	var seg := h.path_end() - a
+	var seg_len := seg.length()
+	if seg_len < 0.1:
+		handle_release()
+		return false
+	var path_dir := seg / seg_len
+	var hand := global_position - h.hang_offset
+	handle_t = maxf(handle_t, clampf((hand - a).dot(path_dir), 0.0, seg_len))
+	if handle_t >= seg_len - 0.8:
+		handle_release() # reached the end: detach, keeping the speed
+		return false
+	handle_speed = move_toward(handle_speed, h.zipline_speed, h.zipline_accel * delta)
+	var target := a + path_dir * clampf(handle_t + 3.0, 0.0, seg_len) + h.hang_offset
+	var to := target - global_position
+	if to.length() > 0.05:
+		velocity = to.normalized() * handle_speed
+	else:
+		velocity = path_dir * handle_speed
+	return true
 #endregion
