@@ -88,10 +88,9 @@ func spend_currency(currency_id:String, amount:int) -> bool:
 	return true
 
 func delete_data():
-	var cfg := ConfigFile.new()
-	cfg.load(_save_path)
-	cfg.clear()
-	cfg.save(_save_path)
+	credits = 0
+	gold_coins = 0
+	save_data()
 
 func save_data() -> void:
 	var cfg := ConfigFile.new()

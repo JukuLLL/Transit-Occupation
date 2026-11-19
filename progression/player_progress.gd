@@ -113,3 +113,18 @@ func _save() -> bool:
 	if cfg.save(tmp) == OK and DirAccess.rename_absolute(tmp, _save_path) == OK:
 		return true
 	return cfg.save(_save_path) == OK
+
+# Dev only: wipes XP, level and claimed rewards.
+# Writes the file directly, because a normal save would merge the old progress back in.
+func dev_reset() -> void:
+	total_xp = 0
+	level = 0
+	claimed.clear()
+	var cfg := ConfigFile.new()
+	cfg.set_value("meta", "version", SAVE_VERSION)
+	cfg.set_value("meta", "saved_at", Time.get_unix_time_from_system())
+	cfg.set_value("progress", "total_xp", 0)
+	cfg.set_value("progress", "claimed_levels", [])
+	cfg.save(_save_path)
+	progress_changed.emit()
+	rewards_changed.emit()

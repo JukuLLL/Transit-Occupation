@@ -91,8 +91,10 @@ func _on_add_gold_coins_pressed() -> void:
 
 
 func _on_clear_pressed() -> void:
+	if !OS.has_feature("editor"):
+		return # safety: never wipes anything in an exported build
 	Currency.delete_data()
-	pass # Replace with function body.
+	PlayerProgress.dev_reset()
 	
 func fade_in(duration := 2.3, hold := 1.3) -> void:
 	var layer := CanvasLayer.new()
