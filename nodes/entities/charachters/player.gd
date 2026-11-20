@@ -44,6 +44,11 @@ var downed_interact:interactable
 var indicators:Node
 
 # GRAB HANDLES
+var handle_vmax := 0.0   # top speed of this swing
+var handle_phi := 0.0    # swing angle from straight down (radians)
+var handle_omega := 0.0  # angular speed (radians/s)
+var handle_dir := Vector3.ZERO # horizontal direction from the handle to where you grabbed it
+var handle_expect := Vector3.ZERO
 var grab_handle:GrabHandle
 var handle_target:GrabHandle
 var handle_len := 0.0
@@ -1438,15 +1443,32 @@ func handle_check(delta:float) -> bool:
 		if !_handle_rush_step(delta):
 			return false
 	else:
-		_handle_swing_step(delta)
+		if !_handle_swing_step(delta):
+			return false
 	return true
 
 func handle_attach(h:GrabHandle) -> void:
 	grab_handle = h
 	dash_left = 0.0
 	handle_t = 0.0
-	handle_len = maxf(global_position.distance_to(h.global_position), h.min_radius) # starts where you are: no teleport
+	var r0 := global_position - h.global_position
+	handle_len = maxf(r0.length(), h.min_radius) # starts where you are: no teleport
 	handle_speed = clampf(Vector2(velocity.x, velocity.z).length(), 6.0, h.zipline_speed)
+	
+	# Swing setup: the swing starts on the side you came from
+	var flat := Vector3(r0.x, 0, r0.z)
+	if flat.length() > 0.3:
+		handle_dir = flat.normalized()
+	else:
+		handle_dir = Vector3(transform.basis.z.x, 0, transform.basis.z.z).normalized()
+	handle_phi = atan2(flat.length(), -r0.y * float(gravity_state))
+	handle_expect = global_position
+	
+	# Keep the speed you came in with, along the direction of the swing
+	var tangent:Vector3 = -handle_dir * cos(handle_phi) + Vector3.DOWN * float(gravity_state) * sin(handle_phi)
+	var entry_speed:float = maxf(velocity.dot(tangent), 0.0)
+	handle_omega = entry_speed / handle_len
+	handle_vmax = maxf(h.swing_speed, entry_speed)
 
 func handle_release() -> void:
 	if grab_handle == null:
@@ -1457,46 +1479,33 @@ func handle_release() -> void:
 	bhop = true # keeps your momentum: no air braking after letting go
 	floor_counter = 0
 
-func _handle_swing_step(delta:float) -> void:
+# Automatic arc from the side you came from to the far side. Returns false when the swing is over.
+func _handle_swing_step(delta:float) -> bool:
 	var h := grab_handle
 	var pivot := h.global_position
 	
-	# The rope eases toward the configured radius
+	# Blocked by a wall or the floor? Let go instead of fighting it
+	if global_position.distance_to(handle_expect) > 1.5:
+		handle_release()
+		return false
+	
 	handle_len = maxf(move_toward(handle_len, h.swing_radius, h.reel_speed * delta), h.min_radius)
+	var rope := handle_len
 	
-	# Gravity, same per-tick value as the rest of the controller
-	velocity.y -= gravity.y * gravity_state
+	# The swing speeds up on its own, no input involved
+	handle_omega = minf(handle_omega + (h.swing_acceleration / rope) * delta, handle_vmax / rope)
+	handle_phi -= handle_omega * delta
 	
-	# Steering and pumping from movement input
-	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-	var to_pivot := pivot - global_position
-	var dist := to_pivot.length()
-	if input != Vector2.ZERO and dist > 0.01:
-		var wish := transform.basis * Vector3(input.x, 0, input.y)
-		wish.y = 0.0
-		wish = wish.normalized()
-		var rope_dir := to_pivot / dist
-		var steer := wish - rope_dir * wish.dot(rope_dir) # never pushes along the rope
-		velocity += steer * h.air_control_strength * delta
-		var flat := Vector3(velocity.x, 0, velocity.z)
-		if flat.length() > 0.5:
-			var move_dir := flat.normalized()
-			var align := wish.dot(move_dir)
-			if align > 0.0:
-				velocity += move_dir * h.swing_acceleration * align * delta
+	# Reached the far side: let go immediately, keeping the speed
+	if handle_phi <= -deg_to_rad(h.release_angle):
+		handle_release()
+		return false
 	
-	# The rope: remove outward velocity when it is taut, and gently pull back in
-	to_pivot = pivot - global_position
-	dist = to_pivot.length()
-	if dist > handle_len and dist > 0.01:
-		var inward := to_pivot / dist
-		var v_out := velocity.dot(-inward)
-		if v_out > 0.0:
-			velocity += inward * v_out
-		var excess := dist - handle_len
-		velocity += inward * minf(excess * 0.5 / maxf(delta, 0.001), h.reel_speed * 2.0)
-	
-	velocity = velocity.limit_length(h.max_speed)
+	# Point on the arc, and the velocity needed to reach it this tick (no teleporting)
+	var target:Vector3 = pivot + handle_dir * (rope * sin(handle_phi)) + Vector3.DOWN * float(gravity_state) * (rope * cos(handle_phi))
+	handle_expect = target
+	velocity = ((target - global_position) / delta).limit_length(h.max_speed)
+	return true
 
 # Returns false when the ride is over (end reached)
 func _handle_rush_step(delta:float) -> bool:

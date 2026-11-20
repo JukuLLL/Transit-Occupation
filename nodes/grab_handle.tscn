@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cpkm6q5g0yddd"]
+
+[ext_resource type="Script" uid="uid://badgebin4m4ml" path="res://nodes/grab_handle.gd" id="1_axgue"]
+
+[node name="GrabHandle" type="Node3D" unique_id=555668623]
+script = ExtResource("1_axgue")

@@ -11,9 +11,10 @@ enum HandleType { AIR, RUSH }
 @export var max_speed := 30.0          # speed limit while attached
 
 @export_group("Air Grapple (swing)")
-@export var swing_radius := 6.0        # distance kept from the handle
-@export var swing_acceleration := 14.0 # extra push when you steer along the swing (pumping)
-@export var air_control_strength := 12.0 # sideways steering strength
+@export var swing_radius := 6.0        # rope length during the swing
+@export var swing_acceleration := 14.0 # how fast the swing speeds up (m/s²)
+@export var swing_speed := 16.0        # top speed along the arc (m/s)
+@export var release_angle := 50.0      # degrees up the far side where you let go
 @export var reel_speed := 14.0         # how fast the rope shortens toward swing_radius
 @export var min_radius := 1.5
 
