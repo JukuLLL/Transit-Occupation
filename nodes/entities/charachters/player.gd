@@ -55,6 +55,8 @@ var handle_len := 0.0
 var handle_t := 0.0 # progress along a Rush path (meters)
 var handle_speed := 0.0
 var handle_cooldown_left := 0.0
+var handle_pulling := false
+var handle_entry_vel := Vector3.ZERO # your velocity at the moment you grabbed
 
 @export var ping_lifetime:float = 7.0
 @export var ping_max_distance:float = 300.0
@@ -501,6 +503,9 @@ func _physics_process(delta):
 		busy = handle_check(delta)
 	if !busy:
 		busy = carry_check(delta)
+	if !busy:
+		socket_check()
+		rescue_check(delta)
 	grappling_hook(delta)
 	if carried_item == null:
 		update_trav_lock()
@@ -1443,7 +1448,8 @@ func handle_check(delta:float) -> bool:
 		if !_handle_rush_step(delta):
 			return false
 	else:
-		if !_handle_swing_step(delta):
+		var ok:bool = _handle_pull_step(delta) if handle_pulling else _handle_swing_step(delta)
+		if !ok:
 			return false
 	return true
 
@@ -1451,11 +1457,22 @@ func handle_attach(h:GrabHandle) -> void:
 	grab_handle = h
 	dash_left = 0.0
 	handle_t = 0.0
-	var r0 := global_position - h.global_position
-	handle_len = maxf(r0.length(), h.min_radius) # starts where you are: no teleport
+	handle_entry_vel = velocity
 	handle_speed = clampf(Vector2(velocity.x, velocity.z).length(), 6.0, h.zipline_speed)
+	handle_pulling = false
+	if h.handle_type == GrabHandle.HandleType.AIR:
+		if global_position.distance_to(h.global_position) > h.swing_radius + 0.2:
+			handle_pulling = true # reel in first
+			handle_speed = clampf(velocity.length(), 8.0, h.pull_speed)
+		else:
+			_swing_setup(h)
+
+# Called when the swing actually begins (right away, or after the pull)
+func _swing_setup(h:GrabHandle) -> void:
+	var r0 := global_position - h.global_position
+	handle_len = maxf(r0.length(), h.min_radius)
 	
-	# Swing setup: the swing starts on the side you came from
+	# The swing starts on the side you came from
 	var flat := Vector3(r0.x, 0, r0.z)
 	if flat.length() > 0.3:
 		handle_dir = flat.normalized()
@@ -1466,7 +1483,7 @@ func handle_attach(h:GrabHandle) -> void:
 	
 	# Keep the speed you came in with, along the direction of the swing
 	var tangent:Vector3 = -handle_dir * cos(handle_phi) + Vector3.DOWN * float(gravity_state) * sin(handle_phi)
-	var entry_speed:float = maxf(velocity.dot(tangent), 0.0)
+	var entry_speed:float = maxf(handle_entry_vel.dot(tangent), 0.0)
 	handle_omega = entry_speed / handle_len
 	handle_vmax = maxf(h.swing_speed, entry_speed)
 
@@ -1478,6 +1495,24 @@ func handle_release() -> void:
 	grab_handle = null
 	bhop = true # keeps your momentum: no air braking after letting go
 	floor_counter = 0
+	
+	# Reels you in toward the handle. Returns false when the grab is over.
+func _handle_pull_step(delta:float) -> bool:
+	var h := grab_handle
+	var to:Vector3 = h.global_position - global_position
+	var dist:float = to.length()
+	handle_t += delta
+	if handle_t > 1.5: # blocked by something on the way: give up
+		handle_release()
+		return false
+	if dist <= h.swing_radius + 0.2:
+		handle_pulling = false
+		_swing_setup(h)
+		return _handle_swing_step(delta) # the swing starts this same tick
+	handle_speed = move_toward(handle_speed, h.pull_speed, h.pull_accel * delta)
+	var step_speed:float = minf(handle_speed, (dist - h.swing_radius) / maxf(delta, 0.001))
+	velocity = to.normalized() * step_speed
+	return true
 
 # Automatic arc from the side you came from to the far side. Returns false when the swing is over.
 func _handle_swing_step(delta:float) -> bool:

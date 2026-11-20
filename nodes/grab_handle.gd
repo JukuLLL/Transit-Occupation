@@ -11,12 +11,14 @@ enum HandleType { AIR, RUSH }
 @export var max_speed := 30.0          # speed limit while attached
 
 @export_group("Air Grapple (swing)")
-@export var swing_radius := 6.0        # rope length during the swing
+@export var swing_radius := 4.0        # rope length during the swing
 @export var swing_acceleration := 14.0 # how fast the swing speeds up (m/s²)
 @export var swing_speed := 16.0        # top speed along the arc (m/s)
-@export var release_angle := 50.0      # degrees up the far side where you let go
+@export var release_angle := 35.0      # degrees up the far side where you let go
 @export var reel_speed := 14.0         # how fast the rope shortens toward swing_radius
 @export var min_radius := 1.5
+@export var pull_speed := 22.0   # how fast you are reeled in toward the handle
+@export var pull_accel := 60.0   # how quickly the pull speeds up
 
 @export_group("Rush Grapple (zipline)")
 @export var end_point:Node3D           # a Marker3D marking the end of the path
