@@ -67,6 +67,7 @@ var teammate_hud:Node
 @export var speed := 5.0
 @export var sprint_speed := 10.0
 @export var jump_multiplier:float=1
+@export var monster_jump_multiplier := 0.75 # the Brute's jump power compared to survivors (1.0 = same)
 @export var max_bhop_inaccuracy:int=20
 @export var mouse_sensitivity := 0.002
 @export var grapple_ray:RayCast3D
@@ -364,7 +365,8 @@ func movement(delta):
 		floor_counter += 1
 		if Input.is_action_just_pressed("jump") and jump_lockout <= 0.0 and tight_count == 0 and carried_item == null and !(kit != null and kit.has_method("blocks_jump") and kit.blocks_jump()):
 			var was_chained: bool = bhop
-			velocity.y += (jump_velocity * gravity_state) * jump_multiplier
+			var jump_mult:float = jump_multiplier * (monster_jump_multiplier if monster else 1.0)
+			velocity.y += (jump_velocity * gravity_state) * jump_mult
 			var horizontal_speed := Vector2(velocity.x, velocity.z).length()
 			if horizontal_speed >= min_bhop_speed:
 				bhop = true
