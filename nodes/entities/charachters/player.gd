@@ -1400,6 +1400,8 @@ func find_handle_target() -> GrabHandle:
 		var h := n as GrabHandle
 		if h == null:
 			continue
+		if !h.is_ready():
+			continue
 		if h.handle_type == GrabHandle.HandleType.RUSH and h.end_point == null:
 			continue
 		if global_position.distance_to(h.global_position) > h.interaction_range:
@@ -1436,7 +1438,7 @@ func handle_check(delta:float) -> bool:
 		return false
 	handle_cooldown_left = maxf(handle_cooldown_left - delta, 0.0)
 	if grab_handle == null:
-		if handle_target == null or handle_cooldown_left > 0.0 or !Input.is_action_just_pressed("right_click"):
+		if handle_target == null or !handle_target.is_ready() or !Input.is_action_just_pressed("right_click"):
 			return false
 		if is_instance_valid(held_socket) or rescue_target != null or carried_item != null or find_grab_target() != null:
 			return false
@@ -1491,8 +1493,9 @@ func handle_release() -> void:
 	if grab_handle == null:
 		return
 	if is_instance_valid(grab_handle):
-		handle_cooldown_left = grab_handle.cooldown
+		grab_handle.start_cooldown() # this handle is now gray for its cooldown time
 	grab_handle = null
+	handle_pulling = false
 	bhop = true # keeps your momentum: no air braking after letting go
 	floor_counter = 0
 	
