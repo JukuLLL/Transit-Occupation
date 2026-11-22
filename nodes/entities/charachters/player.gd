@@ -85,6 +85,10 @@ var grab_hold := 0.0
 
 @export var monster:bool=false
 @export var monster_hold_spot:Marker3D
+@export var jumpscare:Jumpscare # this monster's jumpscare settings (set on the monster's scene)
+var jumpscare_left := 0.0
+var jumpscare_pos := Vector3.ZERO
+var jumpscare_yaw := 0.0
 @export var grav_area:CollisionShape3D
 @export var down_timer: Timer
 
@@ -259,7 +263,7 @@ func visibility_to_blind():
 		
 #region movement_and_camera
 func _unhandled_input(event):
-	if !GDSync.is_gdsync_owner(self) or Network.round_over: return
+	if !GDSync.is_gdsync_owner(self) or Network.round_over or jumpscare_left > 0.0: return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var look_mult := 1.0
 		if kit != null and kit.has_method("look_multiplier"):
@@ -462,6 +466,13 @@ func _physics_process(delta):
 		velocity = Vector3.ZERO
 		return
 	downed_check()
+	if jumpscare_left > 0.0:
+		jumpscare_left -= delta
+		if GDSync.is_gdsync_owner(self):
+			velocity = Vector3.ZERO
+			global_position = jumpscare_pos
+			rotation.y = jumpscare_yaw
+		return # no movement, abilities or attacks while the jumpscare plays
 	if !GDSync.is_gdsync_owner(self):
 		return
 	
@@ -601,6 +612,123 @@ func sync_pick_up(on:bool, monster_path:NodePath = NodePath("")):
 			global_position = former_carrier.global_position + Vector3.UP * 0.05
 			velocity = Vector3.ZERO
 		print("DROP: carrier=", former_carrier, " position=", global_position)
+		
+func get_jumpscare() -> Jumpscare:
+	if jumpscare != null:
+		return jumpscare
+	if kit != null:
+		var j = kit.get("jumpscare") # also works if you put the setting on the kit later
+		if j is Jumpscare:
+			return j
+	return null
+
+# Runs on the downed survivor's own machine: decides the layout and tells everyone
+func _start_jumpscare() -> void:
+	var m := _find_monster()
+	if m == null or m.get_jumpscare() == null:
+		return
+	var js := m.get_jumpscare()
+	var away := m.global_position - global_position
+	away.y = 0.0
+	if away.length() < 0.1:
+		away = transform.basis.z
+		away.y = 0.0
+	away = away.normalized()
+	
+	# Don't put the monster inside a wall
+	var stand := js.stand_distance
+	var from := global_position + Vector3.UP
+	var query := PhysicsRayQueryParameters3D.create(from, from + away * (stand + 0.4))
+	query.exclude = [get_rid(), m.get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if !hit.is_empty():
+		stand = maxf(from.distance_to(hit.position) - 0.5, 0.0)
+	
+	GDSync.call_func_all(sync_jumpscare, m.get_path(), global_position, away, stand)
+
+# Runs on every client
+func sync_jumpscare(monster_path:NodePath, spot:Vector3, away:Vector3, stand:float) -> void:
+	var m := get_node_or_null(monster_path) as player
+	if m == null or jumpscare_left > 0.0:
+		return
+	var js := m.get_jumpscare()
+	if js == null:
+		return
+	var monster_spot := spot + away * stand
+	var yaw_survivor := atan2(-away.x, -away.z) # the survivor faces the monster
+	var yaw_monster := atan2(away.x, away.z)    # the monster faces the survivor
+	_jumpscare_lock(js.duration, spot, yaw_survivor)
+	m._jumpscare_lock(js.duration, monster_spot, yaw_monster)
+	_jumpscare_react(js, monster_spot)
+	m._jumpscare_attack(js)
+
+func _jumpscare_lock(duration:float, pos:Vector3, yaw:float) -> void:
+	jumpscare_left = duration
+	jumpscare_pos = pos
+	jumpscare_yaw = yaw
+	velocity = Vector3.ZERO
+	dash_left = 0.0
+	global_position = pos
+	rotation.y = yaw
+
+# The survivor's reaction (called on the survivor)
+func _jumpscare_react(js:Jumpscare, monster_spot:Vector3) -> void:
+	# Body, which other players see: your animation if you set one, otherwise a lean back
+	var played := false
+	if js.survivor_anim != "":
+		var ap := find_child("AnimationPlayer", true, false) as AnimationPlayer
+		if ap != null and ap.has_animation(js.survivor_anim):
+			ap.play(js.survivor_anim)
+			played = true
+	if !played and player_mesh != null:
+		var rest := player_mesh.rotation.x
+		var body := create_tween()
+		body.tween_property(player_mesh, "rotation:x", rest + deg_to_rad(js.recoil_degrees), 0.12)
+		body.tween_interval(maxf(js.duration - 0.5, 0.0))
+		body.tween_property(player_mesh, "rotation:x", rest, 0.3)
+	
+	# Camera: only on the survivor's own screen, still the first-person camera
+	if !GDSync.is_gdsync_owner(self) or !is_instance_valid(plr_head):
+		return
+	var eye := first_person_camera.global_position
+	var target := monster_spot + Vector3.UP * js.look_height
+	var flat := Vector2(target.x - eye.x, target.z - eye.z).length()
+	var pitch := clampf(atan2(target.y - eye.y, maxf(flat, 0.01)), deg_to_rad(-80), deg_to_rad(80))
+	plr_head.rotation.x = pitch # look straight at the monster
+	if js.shake > 0.0:
+		plr_head.shake(js.shake)
+	var kick := create_tween()
+	kick.tween_property(plr_head, "rotation:x", pitch + deg_to_rad(js.camera_kick), 0.08)
+	kick.tween_property(plr_head, "rotation:x", pitch, 0.5)
+	var roll := create_tween()
+	roll.tween_property(first_person_camera, "rotation:z", deg_to_rad(js.camera_roll), 0.1)
+	roll.tween_property(first_person_camera, "rotation:z", 0.0, js.duration * 0.7)
+
+# The monster's attack (called on the monster)
+func _jumpscare_attack(js:Jumpscare) -> void:
+	# Sound, once, coming from the monster
+	if js.sound != null:
+		var sfx := AudioStreamPlayer3D.new()
+		sfx.stream = js.sound
+		sfx.volume_db = js.volume_db
+		sfx.unit_size = 12.0
+		add_child(sfx)
+		sfx.finished.connect(sfx.queue_free)
+		sfx.play()
+	
+	# Your animation if you set one, otherwise a quick lunge
+	var played := false
+	if js.monster_anim != "":
+		var ap := find_child("AnimationPlayer", true, false) as AnimationPlayer
+		if ap != null and ap.has_animation(js.monster_anim):
+			ap.play(js.monster_anim)
+			played = true
+	if !played and player_mesh != null:
+		var rest := player_mesh.position
+		var lunge := create_tween()
+		lunge.tween_property(player_mesh, "position", rest + Vector3(0, 0, -js.lunge_distance), 0.12).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		lunge.tween_interval(maxf(js.duration - 0.5, 0.0))
+		lunge.tween_property(player_mesh, "position", rest, 0.3)
 
 func _carrier_of(spot:Node) -> player:
 	var n:Node = spot
@@ -705,6 +833,7 @@ func down_player():
 	if GDSync.is_gdsync_owner(self):
 		if down_timer.is_stopped():
 			down_timer.start()
+		_start_jumpscare()
 
 func _on_down_timer_timeout() -> void:
 	if !picked_up and !trapped:
