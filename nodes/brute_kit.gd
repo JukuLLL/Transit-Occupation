@@ -7,6 +7,10 @@ class_name BruteKit extends MonsterKit
 @export var attack_cone := 0.35      # how closely you must aim at the survivor (1 = dead center)
 @export var miss_time := 0.5
 @export var miss_speed := 0.5        # speed multiplier while penalized
+@export_category("Attack sounds")
+@export var hit_sound:AudioStream = preload("res://Sounds/hit.mp3")
+@export var miss_sound:AudioStream = preload("res://Sounds/miss.mp3")
+@export var attack_sound_db := 0.0
 
 @export_category("Dash")
 @export var dash_cooldown := 30.0
@@ -58,7 +62,7 @@ var _thud:AudioStreamWAV
 
 func _expose() -> void:
 	for c in [_host_attack, _attack_result, _host_dash, _dash_ack, _dash_denied,
-			_host_dash_hit, _host_scan, _scan_ack, _drone_spawn, _reveal, _play_step]:
+			_host_dash_hit, _host_scan, _scan_ack, _drone_spawn, _reveal, _play_step, _play_attack_sound]:
 		GDSync.expose_func(c)
 
 func speed_multiplier() -> float:
@@ -186,11 +190,27 @@ func _host_attack(sender:int, target_id:int, node_path:NodePath = NodePath("")) 
 		if n != null and n.is_in_group("traversal_node") \
 				and plr.global_position.distance_to(n.global_position) <= attack_range + 3.0:
 			hit = n.host_sabotage(sabotage_duration())
+	_call_all(_play_attack_sound, [hit])
 	_call_on(client_id, _attack_result, [hit])
 
 func _attack_result(hit:bool) -> void:
 	if is_local and !hit and miss_left <= 0.0:
 		miss_left = miss_time
+		
+var _swing_player:AudioStreamPlayer3D
+
+func _play_attack_sound(hit:bool) -> void:
+	var s:AudioStream = hit_sound if hit else miss_sound
+	if s == null:
+		return
+	if _swing_player == null:
+		_swing_player = AudioStreamPlayer3D.new()
+		_swing_player.unit_size = 12.0
+		_swing_player.max_distance = 60.0
+		plr.add_child(_swing_player)
+	_swing_player.stream = s
+	_swing_player.volume_db = attack_sound_db
+	_swing_player.play()
 
 # =====================================================================
 # Dash
